@@ -13,6 +13,7 @@ contract SmartFundRegistry is Ownable {
   // The Smart Contract which stores the addresses of all the authorized Exchange Portals
   PermittedExchangesInterface public permittedExchanges;
 
+  address public poolPortalAddress;
   address public exchangePortalAddress;
   address public permittedExchangesAddress;
 
@@ -34,12 +35,14 @@ contract SmartFundRegistry is Ownable {
   constructor(
     uint256 _platformFee,
     address _exchangePortalAddress,
-    address _permittedExchangesAddress
+    address _permittedExchangesAddress,
+    address _poolPortalAddress
   ) public {
     platformFee = _platformFee;
     exchangePortalAddress = _exchangePortalAddress;
     permittedExchangesAddress = _permittedExchangesAddress;
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
+    poolPortalAddress = _poolPortalAddress;
   }
 
   /**
@@ -62,7 +65,8 @@ contract SmartFundRegistry is Ownable {
       platformFee,
       this,
       exchangePortalAddress,
-      permittedExchangesAddress
+      permittedExchangesAddress,
+      poolPortalAddress
     );
 
     smartFunds.push(smartFund);

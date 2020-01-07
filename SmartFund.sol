@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "./SmartFundInterface.sol";
+import "./PoolPortalInterface.sol"
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -22,8 +23,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   uint public version = 2;
 
-  // The address of the Exchange Portal
+  // The Interface of the Exchange Portal
   ExchangePortalInterface public exchangePortal;
+
+  // The Interface of pool portall
+  PoolPortalInterface public poolPortal;
 
   // The Smart Contract which stores the addresses of all the authorized Exchange Portals
   PermittedExchangesInterface public permittedExchanges;
@@ -112,7 +116,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     uint256 _platformFee,
     address _platformAddress,
     address _exchangePortalAddress,
-    address _permittedExchangesAddress
+    address _permittedExchangesAddress,
+    address _poolPortal
   ) public {
     // never allow a 100% fee
     require(_successFee < TOTAL_PERCENTAGE);
@@ -135,8 +140,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Initial Token is Ether
     tokenAddresses.push(address(ETH_TOKEN_ADDRESS));
 
+    // Initial interfaces
     exchangePortal = ExchangePortalInterface(_exchangePortalAddress);
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
+    poolPortal = PoolPortalInterface(_poolPortal);
 
     emit SmartFundCreated(owner);
   }
@@ -284,6 +291,55 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       _addToken(_destination);
 
     emit Trade(_source, _sourceAmount, _destination, receivedAmount);
+  }
+
+
+  // TODO describe this
+  function buyPool(
+   uint256 _amount,
+   uint _type,
+   ERC20 _poolToken,
+   ERC20[] _reserveTokens,
+   bytes32[] _additionalArgs
+  )
+  external onlyOwner {
+    // buy pool
+    poolPortal.buyPool(
+     _amount,
+     _type,
+    _poolToken,
+    _reserveTokens,
+     _additionalArgs
+    );
+    // add asset in fund
+    uint256 poolBalance = _poolToken.balanceOf(address(this));
+    if(poolBalance > 0)
+       _addToken(address(_poolToken));
+  }
+
+
+  // TODO describe this
+  function sellPool(
+    uint256 _amount,
+    uint _type,
+    ERC20 _poolToken,
+    ERC20[] _reserveTokens,
+    bytes32[] _additionalArgs
+  )
+  external onlyOwner {
+    poolPortal.sellPool(
+      _amount,
+      _type,
+     _poolToken,
+     _reserveTokens,
+      _additionalArgs
+    );
+    // add return assets in fund
+    for(uint i = 0; i<_reserveTokens.length; i++){
+      uint256 reserveBalance = _reserveTokens[i].balanceOf(address(this));
+      if(reserveBalance > 0)
+         _addToken(address(_reserveTokens[i]));
+    }
   }
 
   /**
@@ -507,6 +563,15 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   */
   function setWhitelistAddress(address _user, bool _allowed) external onlyOwner {
     whitelist[_user] = _allowed;
+  }
+
+  /**
+  * @dev Allows the fund manager to connect to a new [poolPortal
+  *
+  * @param _newPoolPortal   The address of the new pool portal to use
+  */
+  function setNewPoolPortal(address _newPoolPortal) public onlyOwner {
+    poolPortal = PoolPortalInterface(_newPoolPortal);
   }
 
   /**
