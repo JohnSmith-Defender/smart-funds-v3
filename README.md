@@ -1,1 +1,1 @@
-# smart-funds-v3
+# smart-funds-v3 (NOT FINISHED)
