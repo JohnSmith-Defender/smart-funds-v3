@@ -1,16 +1,23 @@
-// TODO docs for methods
+// TODO write docs for methods
 pragma solidity ^0.4.24;
 
 import "./bancor/BancorConverterInterface.sol";
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./helpers/addressFromBytes32.sol";
+import "./GetRatioForBancorAssets.sol"
+
 
 contract PoolPortal {
   using SafeMath for uint256;
   using addressFromBytes32 for bytes32;
+  GetRatioForBancorAssets public bancorRatio;
 
   enum PortalType { Bancor }
+
+  constructor(address _bancorRatio) public {
+    bancorRatio = GetRatioForBancorAssets(_bancorRatio);
+  }
 
   function buyPool
   (
@@ -87,7 +94,12 @@ contract PoolPortal {
     }
   }
 
-  function GetBancorConnectorsAmountByRelayAmount
+  function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256){
+    result = bancorRatio.getRatio(_from. _to, _amount);
+    return result;
+  }
+
+  function getBancorConnectorsAmountByRelayAmount
   (
     uint256 _amount,
     ERC20 _token,
