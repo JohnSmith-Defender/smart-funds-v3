@@ -13,7 +13,11 @@ contract GetRatioForBancorAssets {
   }
 
   function getRatio(address _from, address _to, uint256 _amount) public view return(uint256 result){
-    address[] path = pathFinder.generatePath(_from, _to);
-    result = bancorNetwork.getReturnByPath(path, _amount);
+    if(_amount > 0){
+      address[] path = pathFinder.generatePath(_from, _to);
+      result = bancorNetwork.getReturnByPath(path, _amount);
+    }else{
+      result = 0;
+    }
   }
 }
