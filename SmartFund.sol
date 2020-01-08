@@ -326,7 +326,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // add new relay in fund as relays
     uint256 poolBalance = _poolToken.balanceOf(address(this));
     if(poolBalance > 0)
+       // Add relay as ERC20 for withdraw
        _addToken(address(_poolToken));
+       // Add relay as Relay for calculate relay balance
+       _addRelay(address(_poolToken)); 
   }
 
 
