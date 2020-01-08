@@ -94,10 +94,25 @@ contract PoolPortal {
     }
   }
 
+
   function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256){
     result = bancorRatio.getRatio(_from. _to, _amount);
     return result;
   }
+
+
+  // Calculate value for assets array in ration of some one assets (like ETH or DAI)
+  function getTotalValue(address[] _fromAddresses, uint256[] _amounts, address _to) public view returns (uint256) {
+    uint256 sum = 0;
+
+    for (uint256 i = 0; i < _fromAddresses.length; i++) {
+      sum = sum.add(getRatio(_fromAddresses[i], _to, _amounts[i]));
+    }
+
+    return sum;
+  }
+
+
 
   function getBancorConnectorsAmountByRelayAmount
   (

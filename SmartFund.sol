@@ -21,7 +21,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   using SafeMath for uint256;
   using SafeERC20 for ERC20;
 
-  uint public version = 2;
+  uint public version = 3;
 
   // The Interface of the Exchange Portal
   ExchangePortalInterface public exchangePortal;
@@ -72,6 +72,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   // An array of all the erc20 token addresses the smart fund holds
   address[] public tokenAddresses;
+
+  // An array of list pool relays addresses
+  address[] public relayAddresses;
 
   // Boolean value that determines whether the fund accepts deposits from anyone or
   // only specific addresses approved by the manager
@@ -294,7 +297,16 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
 
-  // TODO describe this
+  // NOT TESTED
+  /**
+  * @dev buy pool via pool portal
+  *
+  * @param _amount    amount of pool to buy
+  * @param _type    type of pool (0 - Bancor)
+  * @param _poolToken    address of relay
+  * @param _reserveTokens    addresses of both reserve connectors (BNT or ETH and ERC20)
+  * @param _additionalArgs  bytes32 additional args array
+  */
   function buyPool(
    uint256 _amount,
    uint _type,
@@ -311,14 +323,23 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     _reserveTokens,
      _additionalArgs
     );
-    // add asset in fund
+    // add new relay in fund as relays
     uint256 poolBalance = _poolToken.balanceOf(address(this));
     if(poolBalance > 0)
        _addToken(address(_poolToken));
   }
 
 
-  // TODO describe this
+  // NOT TESTED
+  /**
+  * @dev sell pool via pool portal
+  *
+  * @param _amount    amount of pool to buy
+  * @param _type    type of pool (0 - Bancor)
+  * @param _poolToken    address of relay
+  * @param _reserveTokens    addresses of both reserve connectors (BNT or ETH and ERC20)
+  * @param _additionalArgs  bytes32 additional args array
+  */
   function sellPool(
     uint256 _amount,
     uint _type,
@@ -334,7 +355,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
      _reserveTokens,
       _additionalArgs
     );
-    // add return assets in fund
+    // add returns assets in fund as tokens
     for(uint i = 0; i<_reserveTokens.length; i++){
       uint256 reserveBalance = _reserveTokens[i].balanceOf(address(this));
       if(reserveBalance > 0)
@@ -390,10 +411,24 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       amounts[i-1] = ERC20(tokenAddresses[i]).balanceOf(address(this));
     }
 
+    // NOT TESTED (get relay value) start
+    uint256 relayValue = 0
+    // take into account relats if fund hold some relay
+    if(relayAddresses.length > 0){
+      uint256 [] memory relayAmounts = new uint256(relayAddresses.length);
+      for(uint256 j = 0; j < relayAddresses.length; j++){
+        relayAmounts[j] = ERC20(relayAddresses[i]).balanceOf(address(this));
+      }
+      // NOTE ETH TOKEN ADDRESS SHOULD BE CHANGED TO BANCOR TOKEN ADDRESS IF TYPE BANCOR
+      relayValue = poolPortal.getTotalValue(relayAddresses, relayAmounts, ETH_TOKEN_ADDRESS);
+    }
+    // NOT TESTED finish
+
     // Ask the Exchange Portal for the value of all the funds tokens in eth
     uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, ETH_TOKEN_ADDRESS);
 
-    return ethBalance + tokensValue;
+    // NOT TESTED (Take into account relay value)
+    return ethBalance + tokensValue + relayValue;
   }
 
   function getAllTokenAddresses() public view returns (address[]) {
@@ -446,6 +481,31 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
 
+  // NOT TESTED
+  /**
+  * @dev Adds a relay to fund relays
+  * @param _relay   The relay to add
+  */
+  function _addRelay(address _relay) private {
+    relayAddresses.push(_relay);
+  }
+
+  // NOT TESTED
+  /**
+  * @dev Removes a relay from relayAddresses
+  *
+  * @param _relay         The address of the relay to be removed
+  * @param _relayIndex    The index of the relay to be removed
+  *
+  */
+  function removeRelay(address _relay, uint256 _relayIndex) public onlyOwner {
+    // remove relay from array
+    uint256 arrayLength = relayAddresses.length - 1;
+    relayAddresses[_relayIndex] = relayAddresses[arrayLength];
+    delete relayAddresses[arrayLength];
+    relayAddresses.length--;
+  }
+
   // This method should be removed asap, all this data can be grabbed without this method,
   // albeit with a few more calls required
   function getSmartFundData() public view returns (
@@ -453,13 +513,15 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     string _name,
     uint256 _totalShares,
     address[] _tokenAddresses,
-    uint256 _successFee
+    uint256 _successFee,
+    address[] _relayAddresses
   ) {
     _owner = owner;
     _name = name;
     _totalShares = totalShares;
     _tokenAddresses = tokenAddresses;
     _successFee = successFee;
+    _relayAddresses = relayAddresses;
   }
 
   /**
