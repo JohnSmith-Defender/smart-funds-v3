@@ -2,10 +2,10 @@
 pragma solidity ^0.4.24;
 
 import "./bancor/BancorConverterInterface.sol";
+import "./bancor/IGetRatioForBancorAssets.sol";
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./helpers/addressFromBytes32.sol";
-import "./IGetRatioForBancorAssets.sol";
 
 
 contract PoolPortal {
@@ -35,8 +35,8 @@ contract PoolPortal {
       address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
 
       // get connectors amount for buy relay by relay amount
-      uint256 bancorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
-      uint256 connectorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
+      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
+      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
 
       // approve bancor and coonector amount to converter
       _transferFromSenderAndApproveTo(_reserveTokens[0], bancorAmount, converter);
@@ -70,8 +70,8 @@ contract PoolPortal {
       address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
 
       // calculate returns for fund
-      uint256 bancorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
-      uint256 connectorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
+      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
+      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
 
       // liquidate relay
       BancorConverterInterface converterContract = BancorConverterInterface(converter);
@@ -87,8 +87,8 @@ contract PoolPortal {
   }
 
 
-  function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256){
-    result = bancorRatio.getRatio(_from. _to, _amount);
+  function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256 result){
+    result = bancorRatio.getRatio(_from, _to, _amount);
     return result;
   }
 
