@@ -315,6 +315,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
    bytes32[] _additionalArgs
   )
   external onlyOwner {
+
+    // make sure Bancor connector not approved before
+    // because Bancor token throw new approve if alredy approved
+    
     // buy pool
     poolPortal.buyPool(
      _amount,
@@ -329,7 +333,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
        // Add relay as ERC20 for withdraw
        _addToken(address(_poolToken));
        // Add relay as Relay for calculate relay balance
-       _addRelay(address(_poolToken)); 
+       _addRelay(address(_poolToken));
   }
 
 

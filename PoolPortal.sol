@@ -5,18 +5,18 @@ import "./bancor/BancorConverterInterface.sol";
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./helpers/addressFromBytes32.sol";
-import "./GetRatioForBancorAssets.sol"
+import "./IGetRatioForBancorAssets.sol";
 
 
 contract PoolPortal {
   using SafeMath for uint256;
   using addressFromBytes32 for bytes32;
-  GetRatioForBancorAssets public bancorRatio;
+  IGetRatioForBancorAssets public bancorRatio;
 
   enum PortalType { Bancor }
 
   constructor(address _bancorRatio) public {
-    bancorRatio = GetRatioForBancorAssets(_bancorRatio);
+    bancorRatio = IGetRatioForBancorAssets(_bancorRatio);
   }
 
   function buyPool
@@ -34,23 +34,15 @@ contract PoolPortal {
       // get Bancor converter
       address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
 
-      // get connectors amount
-      uint256 bancorAmount = uint256(_additionalArgs[1]);
-      uint256 connectorAmount = uint256(_additionalArgs[2]);
+      // get connectors amount for buy relay by relay amount
+      uint256 bancorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
+      uint256 connectorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
 
-      // make sure Bancor connector not approved before
-      // because Bancor token throw new approve if alredy approved
-      uint256 approvedBancor = _reserveTokens[0].allowance(converter, msg.sender);
+      // approve bancor and coonector amount to converter
+      _transferFromSenderAndApproveTo(_reserveTokens[0], bancorAmount, converter);
+      _transferFromSenderAndApproveTo(_reserveTokens[1], connectorAmount, converter);
 
-      // reset approve
-      if(approvedBancor > 0)
-          _transferFromSenderAndApproveTo(_reserveTokens[0], 0, address(this));
-
-      // approve bancor and coonector
-      _transferFromSenderAndApproveTo(_reserveTokens[0], bancorAmount, address(this));
-      _transferFromSenderAndApproveTo(_reserveTokens[1], connectorAmount, address(this));
-
-      // buy relay
+      // buy relay from converter
       BancorConverterInterface converterContract = BancorConverterInterface(converter);
       converterContract.fund(_amount);
 
@@ -76,6 +68,7 @@ contract PoolPortal {
     if(_type == uint(PortalType.Bancor)){
       // get Bancor Converter address
       address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
+
       // calculate returns for fund
       uint256 bancorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
       uint256 connectorAmount = GetBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
@@ -87,7 +80,6 @@ contract PoolPortal {
       // transfer assets back to smart fund
       _reserveTokens[0].transfer(msg.sender, bancorAmount);
       _reserveTokens[1].transfer(msg.sender, connectorAmount);
-
     }else{
       // unknown portal type
       revert();
@@ -113,7 +105,7 @@ contract PoolPortal {
   }
 
 
-
+  // This function calculate amount of both reserve for buy and sell by pool amount
   function getBancorConnectorsAmountByRelayAmount
   (
     uint256 _amount,
@@ -136,7 +128,7 @@ contract PoolPortal {
   * @param _to              Address to approve to
   */
   function _transferFromSenderAndApproveTo(ERC20 _source, uint256 _sourceAmount, address _to) private {
-    require(_source.transferFrom(msg.sender, this, _sourceAmount));
+    require(_source.transferFrom(msg.sender, address(this), _sourceAmount));
 
     _source.approve(_to, _sourceAmount);
   }
