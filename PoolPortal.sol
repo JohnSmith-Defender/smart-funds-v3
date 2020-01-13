@@ -3,6 +3,7 @@ pragma solidity ^0.4.24;
 
 import "./bancor/BancorConverterInterface.sol";
 import "./bancor/IGetRatioForBancorAssets.sol";
+import "./bancor/SmartTokenInterface.sol";
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./helpers/addressFromBytes32.sol";
@@ -24,27 +25,25 @@ contract PoolPortal {
     uint256 _amount,
     uint _type,
     ERC20 _poolToken,
-    ERC20[] _reserveTokens,
-    bytes32[] _additionalArgs
+    ERC20[] _reserveTokens
   )
   external
   payable
   {
     if(_type == uint(PortalType.Bancor)){
       // get Bancor converter
-      address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
+      address converter = SmartTokenInterface(_poolToken).owner();
 
-      // get connectors amount for buy relay by relay amount
-      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter);
-      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter);
+      // calculate connectors amount for fet after liquidate
+      (uint256 bancorAmount,
+       uint256 connectorAmount) = getBancorConnectorsAmountByRelayAmount(_amount, _poolToken);
 
       // approve bancor and coonector amount to converter
       _transferFromSenderAndApproveTo(_reserveTokens[0], bancorAmount, converter);
       _transferFromSenderAndApproveTo(_reserveTokens[1], connectorAmount, converter);
 
       // buy relay from converter
-      BancorConverterInterface converterContract = BancorConverterInterface(converter);
-      converterContract.fund(_amount);
+      BancorConverterInterface(converter).fund(_amount);
 
       // transfer relay back to smart fund
       _poolToken.transfer(msg.sender, _amount);
@@ -58,23 +57,22 @@ contract PoolPortal {
   (
     uint256 _amount,
     uint _type,
-    ERC20[] _reserveTokens,
-    bytes32[] _additionalArgs
+    ERC20 _poolToken,
+    ERC20[] _reserveTokens
   )
   external
   payable
   {
     if(_type == uint(PortalType.Bancor)){
       // get Bancor Converter address
-      address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
+      address converter = SmartTokenInterface(_poolToken).owner();
 
-      // calculate returns for fund
-      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter);
-      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter);
+      // calculate connectors amount for fet after liquidate
+      (uint256 bancorAmount,
+       uint256 connectorAmount) = getBancorConnectorsAmountByRelayAmount(_amount, _poolToken);
 
       // liquidate relay
-      BancorConverterInterface converterContract = BancorConverterInterface(converter);
-      converterContract.liquidate(_amount);
+      BancorConverterInterface(converter).liquidate(_amount);
 
       // transfer assets back to smart fund
       _reserveTokens[0].transfer(msg.sender, bancorAmount);
@@ -108,14 +106,28 @@ contract PoolPortal {
   function getBancorConnectorsAmountByRelayAmount
   (
     uint256 _amount,
-    ERC20 _token,
-    address _converter
+    ERC20 _relay
   )
-  public view returns(uint256) {
-    uint256 supply = _token.totalSupply();
-    BancorConverterInterface converter = BancorConverterInterface(_converter);
-    uint256 reserveBalance = converter.getConnectorBalance(_token);
-    return _amount.mul(reserveBalance).div(supply);
+  public view returns(uint256 bancorAmount, uint256 connectorAmount) {
+    // get converter
+    address converterAddress = SmartTokenInterface(_relay).owner();
+    // get relay supply
+    uint256 supply = _relay.totalSupply();
+    // get converter as contract
+    BancorConverterInterface converter = BancorConverterInterface(converterAddress);
+    // calculate BNT and second connector amount
+
+    // get connectors
+    ERC20 bancorConnector = converter.connectorTokens(0);
+    ERC20 ercConnector = converter.connectorTokens(1);
+
+    // get connectors balance
+    uint256 bntBalance = converter.getConnectorBalance(bancorConnector);
+    uint256 ercBalance = converter.getConnectorBalance(ercConnector);
+
+    // calculate according this formula input * connector balance / smart token supply
+    bancorAmount = _amount.mul(bntBalance).div(supply);
+    connectorAmount = _amount.mul(ercBalance).div(supply);
   }
 
 
