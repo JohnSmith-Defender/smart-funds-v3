@@ -101,6 +101,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   event Trade(address src, uint256 srcAmount, address dest, uint256 destReceived);
   event SmartFundCreated(address indexed owner);
 
+  // enum
+  enum PortalType { Bancor }
+
   /**
   * @dev constructor
   *
@@ -315,11 +318,14 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
    bytes32[] _additionalArgs
   )
   external onlyOwner {
+   if(_type == uint(PortalType.Bancor)){
+    // Approve all connectors to pool portal (pool calculates the required amount dynamicly)
+    uint i = 0;
+    for(i = 0; i < _reserveTokens.length; i++){
+      _reserveTokens[i].approve(address(poolPortal), _reserveTokens[i].balanceOf(address(this)));
+    }
 
-    // make sure Bancor connector not approved before
-    // because Bancor token throw new approve if alredy approved
-    
-    // buy pool
+    // buy pool(relay)
     poolPortal.buyPool(
      _amount,
      _type,
@@ -327,13 +333,21 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     _reserveTokens,
      _additionalArgs
     );
-    // add new relay in fund as relays
+
+    // add new pool(relay) in fund
     uint256 poolBalance = _poolToken.balanceOf(address(this));
-    if(poolBalance > 0)
-       // Add relay as ERC20 for withdraw
-       _addToken(address(_poolToken));
-       // Add relay as Relay for calculate relay balance
-       _addRelay(address(_poolToken));
+    if(poolBalance > 0){
+      // Add relay as ERC20 for withdraw assets
+      _addToken(address(_poolToken));
+      // Add relay as Relay for calculate relay value
+      _addRelay(address(_poolToken));
+    }
+
+    // reset approve
+    for(i = 0; i < _reserveTokens.length; i++){
+      _reserveTokens[i].approve(address(poolPortal), 0);
+    }
+    }
   }
 
 
@@ -362,7 +376,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
      _reserveTokens,
       _additionalArgs
     );
-    // add returns assets in fund as tokens
+    // add returned assets in fund as tokens
     for(uint i = 0; i<_reserveTokens.length; i++){
       uint256 reserveBalance = _reserveTokens[i].balanceOf(address(this));
       if(reserveBalance > 0)
