@@ -35,8 +35,8 @@ contract PoolPortal {
       address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
 
       // get connectors amount for buy relay by relay amount
-      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
-      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
+      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter);
+      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter);
 
       // approve bancor and coonector amount to converter
       _transferFromSenderAndApproveTo(_reserveTokens[0], bancorAmount, converter);
@@ -58,7 +58,6 @@ contract PoolPortal {
   (
     uint256 _amount,
     uint _type,
-    ERC20 _poolToken,
     ERC20[] _reserveTokens,
     bytes32[] _additionalArgs
   )
@@ -70,8 +69,8 @@ contract PoolPortal {
       address converter = addressFromBytes32.bytesToAddress(_additionalArgs[0]);
 
       // calculate returns for fund
-      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter, _poolToken);
-      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter, _poolToken);
+      uint256 bancorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[0], converter);
+      uint256 connectorAmount = getBancorConnectorsAmountByRelayAmount(_amount, _reserveTokens[1], converter);
 
       // liquidate relay
       BancorConverterInterface converterContract = BancorConverterInterface(converter);
@@ -110,12 +109,12 @@ contract PoolPortal {
   (
     uint256 _amount,
     ERC20 _token,
-    address _converter,
-    ERC20 _relay
+    address _converter
   )
   public view returns(uint256) {
-    uint256 supply = _relay.totalSupply();
-    uint256 reserveBalance = _token.balanceOf(_converter);
+    uint256 supply = _token.totalSupply();
+    BancorConverterInterface converter = BancorConverterInterface(_converter);
+    uint256 reserveBalance = converter.getConnectorBalance(_token);
     return _amount.mul(reserveBalance).div(supply);
   }
 
