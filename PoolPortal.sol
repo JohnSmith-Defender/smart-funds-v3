@@ -87,8 +87,8 @@ contract PoolPortal {
       ERC20 bancorConnector = converter.connectorTokens(0);
       ERC20 ercConnector = converter.connectorTokens(1);
 
-      bancorConnector[0].transfer(msg.sender, bancorAmount);
-      ercConnector[1].transfer(msg.sender, connectorAmount);
+      bancorConnector.transfer(msg.sender, bancorAmount);
+      ercConnector.transfer(msg.sender, connectorAmount);
     }else{
       // unknown portal type
       revert();
