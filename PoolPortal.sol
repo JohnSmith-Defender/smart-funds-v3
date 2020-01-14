@@ -34,7 +34,7 @@ contract PoolPortal {
       // get Bancor converter
       address converterAddress = SmartTokenInterface(_poolToken).owner();
 
-      // calculate connectors amount for fet after liquidate
+      // calculate connectors amount for buy certain pool amount 
       (uint256 bancorAmount,
        uint256 connectorAmount) = getBancorConnectorsAmountByRelayAmount(_amount, _poolToken);
 

@@ -1,7 +1,9 @@
 pragma solidity ^0.4.24;
 
 import "./SmartFundInterface.sol";
-import "./PoolPortalInterface.sol"
+import "./PoolPortalInterface.sol";
+import "./bancor/BancorConverterInterface.sol";
+import "./bancor/SmartTokenInterface.sol";
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -314,15 +316,33 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
    uint256 _amount,
    uint _type,
    ERC20 _poolToken,
-   ERC20[] _reserveTokens,
-   bytes32[] _additionalArgs
+   bytes32[] _additionalArgs // Some addition data for another pools like Uniswap
   )
   external onlyOwner {
    if(_type == uint(PortalType.Bancor)){
+    _buyBancorPool(_amount, _type, _poolToken);
+   }else{
+     // unknown portal type
+     revert();
+   }
+  }
+
+
+  // Helper for buy Bancor pool
+  function _buyBancorPool(
+    uint256 _amount,
+    uint _type,
+    ERC20 _poolToken
+  ) private
+  {
+    // get connectors
+    address converterAddress = SmartTokenInterface(_relay).owner();
+    ERC20[] reserveTokens = BancorConverterInterface(converterAddress).connectorTokens();
+
     // Approve all connectors to pool portal (pool calculates the required amount dynamicly)
     uint i = 0;
-    for(i = 0; i < _reserveTokens.length; i++){
-      _reserveTokens[i].approve(address(poolPortal), _reserveTokens[i].balanceOf(address(this)));
+    for(i; i < reserveTokens.length; i++){
+      reserveTokens[i].approve(address(poolPortal), reserveTokens[i].balanceOf(address(this)));
     }
 
     // buy pool(relay)
@@ -330,7 +350,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
      _amount,
      _type,
     _poolToken,
-    _reserveTokens,
      _additionalArgs
     );
 
@@ -347,7 +366,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     for(i = 0; i < _reserveTokens.length; i++){
       _reserveTokens[i].approve(address(poolPortal), 0);
     }
-    }
   }
 
 
@@ -358,14 +376,12 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _amount    amount of pool to buy
   * @param _type    type of pool (0 - Bancor)
   * @param _poolToken    address of relay
-  * @param _reserveTokens    addresses of both reserve connectors (BNT or ETH and ERC20)
   * @param _additionalArgs  bytes32 additional args array
   */
   function sellPool(
     uint256 _amount,
     uint _type,
     ERC20 _poolToken,
-    ERC20[] _reserveTokens,
     bytes32[] _additionalArgs
   )
   external onlyOwner {
@@ -373,7 +389,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       _amount,
       _type,
      _poolToken,
-     _reserveTokens,
       _additionalArgs
     );
     // add returned assets in fund as tokens
