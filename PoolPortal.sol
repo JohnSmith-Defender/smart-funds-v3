@@ -45,8 +45,8 @@ contract PoolPortal {
       ERC20 bancorConnector = converter.connectorTokens(0);
       ERC20 ercConnector = converter.connectorTokens(1);
 
-      _transferFromSenderAndApproveTo(bancorConnector, bancorAmount, converter);
-      _transferFromSenderAndApproveTo(ercConnector, connectorAmount, converter);
+      _transferFromSenderAndApproveTo(bancorConnector, bancorAmount, converterAddress);
+      _transferFromSenderAndApproveTo(ercConnector, connectorAmount, converterAddress);
 
       // buy relay from converter
       converter.fund(_amount);
@@ -127,6 +127,7 @@ contract PoolPortal {
     uint256 supply = _relay.totalSupply();
     // get converter as contract
     BancorConverterInterface converter = BancorConverterInterface(converterAddress);
+
     // calculate BNT and second connector amount
 
     // get connectors
