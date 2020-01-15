@@ -13,8 +13,7 @@ contract GetRatioForBancorAssets {
     pathFinder = PathFinderInterface(_pathFinder);
   }
 
-  // Get Ration between Bancor assets
-  // Get Ration between Bancor assets
+  // Get Ratio between Bancor assets
   function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256 result){
     if(_amount > 0){
       // get Bancor path array
@@ -25,7 +24,7 @@ contract GetRatioForBancorAssets {
       for(uint i=0; i<path.length; i++){
           pathInERC20[i] = ERC20(path[i]);
       }
-      
+
       // get Ratio
       ( uint256 ratio, ) = bancorNetwork.getReturnByPath(pathInERC20, _amount);
       result = ratio;

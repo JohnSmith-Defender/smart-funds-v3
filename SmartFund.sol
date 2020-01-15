@@ -318,7 +318,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   )
   external onlyOwner {
    if(_type == uint(PortalType.Bancor)){
-    _buyBancorPool(_amount, _type, _poolToken);
+    _buyBancorPool(_amount, _type, _poolToken, _additionalArgs);
    }else{
      // unknown portal type
      revert();
@@ -330,7 +330,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   function _buyBancorPool(
     uint256 _amount,
     uint _type,
-    ERC20 _poolToken
+    ERC20 _poolToken,
+    bytes32[] _additionalArgs
   ) private
   {
     // get connectors
@@ -443,7 +444,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     uint256 relayValue = 0;
     // take into account relats if fund hold some relay
     if(relayAddresses.length > 0){
-      uint256 [] memory relayAmounts = new uint256(relayAddresses.length);
+      uint256 [] memory relayAmounts = new uint256[](relayAddresses.length);
       for(uint256 j = 0; j < relayAddresses.length; j++){
         relayAmounts[j] = ERC20(relayAddresses[i]).balanceOf(address(this));
       }
@@ -527,6 +528,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   *
   */
   function removeRelay(address _relay, uint256 _relayIndex) public onlyOwner {
+    require(ERC20(_relay).balanceOf(address(this)) == 0);
+    require(relayAddresses[_relayIndex] == _relay);
+
     // remove relay from array
     uint256 arrayLength = relayAddresses.length - 1;
     relayAddresses[_relayIndex] = relayAddresses[arrayLength];

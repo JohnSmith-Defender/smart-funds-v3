@@ -8,7 +8,6 @@ contract PoolPortalInterface {
     uint256 _amount,
     uint _type,
     ERC20 _poolToken,
-    ERC20[] _reserveTokens,
     bytes32[] _additionalArgs
   )
   external
@@ -19,7 +18,6 @@ contract PoolPortalInterface {
     uint256 _amount,
     uint _type,
     ERC20 _poolToken,
-    ERC20[] _reserveTokens,
     bytes32[] _additionalArgs
   )
   external
