@@ -1,3 +1,4 @@
+// TODO shoulg get this address and BANCOR ETH address from Bancor registry 
 pragma solidity ^0.4.24;
 
 import "./PathFinderInterface.sol";
