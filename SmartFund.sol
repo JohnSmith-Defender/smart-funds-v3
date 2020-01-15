@@ -2,8 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./SmartFundInterface.sol";
 import "./PoolPortalInterface.sol";
-import "./bancor/BancorConverterInterface.sol";
-import "./bancor/SmartTokenInterface.sol";
+
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -309,7 +308,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _amount    amount of pool to buy
   * @param _type    type of pool (0 - Bancor)
   * @param _poolToken    address of relay
-  * @param _reserveTokens    addresses of both reserve connectors (BNT or ETH and ERC20)
   * @param _additionalArgs  bytes32 additional args array
   */
   function buyPool(
@@ -336,14 +334,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   ) private
   {
     // get connectors
-    address converterAddress = SmartTokenInterface(_relay).owner();
-    ERC20[] reserveTokens = BancorConverterInterface(converterAddress).connectorTokens();
+    (ERC20 bancorConnector, ERC20 ercConnector) = poolPortal.getBancorConnectorsByRelay(address(_poolToken));
 
     // Approve all connectors to pool portal (pool calculates the required amount dynamicly)
-    uint i = 0;
-    for(i; i < reserveTokens.length; i++){
-      reserveTokens[i].approve(address(poolPortal), reserveTokens[i].balanceOf(address(this)));
-    }
+    bancorConnector.approve(address(poolPortal), bancorConnector.balanceOf(address(this)));
+    ercConnector.approve(address(poolPortal), ercConnector.balanceOf(address(this)));
 
     // buy pool(relay)
     poolPortal.buyPool(
@@ -363,9 +358,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     }
 
     // reset approve
-    for(i = 0; i < _reserveTokens.length; i++){
-      _reserveTokens[i].approve(address(poolPortal), 0);
-    }
+    bancorConnector.approve(address(poolPortal), 0);
+    ercConnector.approve(address(poolPortal), 0);
   }
 
 
@@ -391,12 +385,10 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
      _poolToken,
       _additionalArgs
     );
-    // add returned assets in fund as tokens
-    for(uint i = 0; i<_reserveTokens.length; i++){
-      uint256 reserveBalance = _reserveTokens[i].balanceOf(address(this));
-      if(reserveBalance > 0)
-         _addToken(address(_reserveTokens[i]));
-    }
+    // add returned assets in fund as tokens (for case if manager removed)
+    (ERC20 bancorConnector, ERC20 ercConnector) = poolPortal.getBancorConnectorsByRelay(address(_poolToken));
+    _addToken(address(bancorConnector));
+    _addToken(address(ercConnector));
   }
 
   /**
@@ -448,7 +440,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     }
 
     // NOT TESTED (get relay value) start
-    uint256 relayValue = 0
+    uint256 relayValue = 0;
     // take into account relats if fund hold some relay
     if(relayAddresses.length > 0){
       uint256 [] memory relayAmounts = new uint256(relayAddresses.length);

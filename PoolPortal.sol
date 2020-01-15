@@ -32,9 +32,9 @@ contract PoolPortal {
   {
     if(_type == uint(PortalType.Bancor)){
       // get Bancor converter
-      address converterAddress = SmartTokenInterface(_poolToken).owner();
+      address converterAddress = getBacorConverterAddressByRelay(address(_poolToken));
 
-      // calculate connectors amount for buy certain pool amount 
+      // calculate connectors amount for buy certain pool amount
       (uint256 bancorAmount,
        uint256 connectorAmount) = getBancorConnectorsAmountByRelayAmount(_amount, _poolToken);
 
@@ -42,8 +42,8 @@ contract PoolPortal {
       BancorConverterInterface converter = BancorConverterInterface(converterAddress);
 
       // approve bancor and coonector amount to converter
-      ERC20 bancorConnector = converter.connectorTokens(0);
-      ERC20 ercConnector = converter.connectorTokens(1);
+      (ERC20 bancorConnector,
+      ERC20 ercConnector) = getBancorConnectorsByRelay(address(_poolToken));
 
       _transferFromSenderAndApproveTo(bancorConnector, bancorAmount, converterAddress);
       _transferFromSenderAndApproveTo(ercConnector, connectorAmount, converterAddress);
@@ -71,7 +71,7 @@ contract PoolPortal {
   {
     if(_type == uint(PortalType.Bancor)){
       // get Bancor Converter address
-      address converterAddress = SmartTokenInterface(_poolToken).owner();
+      address converterAddress = getBacorConverterAddressByRelay(address(_poolToken));
 
       // calculate connectors amount for fet after liquidate
       (uint256 bancorAmount,
@@ -84,8 +84,8 @@ contract PoolPortal {
       converter.liquidate(_amount);
 
       // transfer assets back to smart fund
-      ERC20 bancorConnector = converter.connectorTokens(0);
-      ERC20 ercConnector = converter.connectorTokens(1);
+      (ERC20 bancorConnector,
+      ERC20 ercConnector) = getBancorConnectorsByRelay(address(_poolToken));
 
       bancorConnector.transfer(msg.sender, bancorAmount);
       ercConnector.transfer(msg.sender, connectorAmount);
@@ -93,6 +93,24 @@ contract PoolPortal {
       // unknown portal type
       revert();
     }
+  }
+
+  function getBacorConverterAddressByRelay(address relay) public view returns(address converter){
+    converter = SmartTokenInterface(relay).owner();
+  }
+
+  function getBancorConnectorsByRelay(address relay)
+  public
+  view
+  returns(
+    ERC20 BNTConnector,
+    ERC20 ERCConnector
+  )
+  {
+    address converterAddress = getBacorConverterAddressByRelay(relay);
+    BancorConverterInterface converter = BancorConverterInterface(converterAddress);
+    BNTConnector = converter.connectorTokens(0);
+    ERCConnector = converter.connectorTokens(1);
   }
 
 
