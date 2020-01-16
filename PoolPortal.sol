@@ -4,11 +4,11 @@ pragma solidity ^0.4.24;
 import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./bancor/BancorConverterInterface.sol";
-import "./bancor/IGetRatioForBancorAssets.sol";
-import "./bancor/SmartTokenInterface.sol";
-import "./bancor/IContractRegistry.sol";
-import "./bancor/IBancorFormula.sol";
+import "./bancor/interfaces/BancorConverterInterface.sol";
+import "./bancor/interfaces/IGetRatioForBancorAssets.sol";
+import "./bancor/interfaces/SmartTokenInterface.sol";
+import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
+import "./bancor/interfaces/IBancorFormula.sol";
 
 import "./helpers/stringToBytes32.sol";
 
@@ -18,14 +18,14 @@ contract PoolPortal {
   using stringToBytes32 for string;
 
   IGetRatioForBancorAssets public bancorRatio;
-  IContractRegistry public bancorRegistry;
+  IGetBancorAddressFromRegistry public bancorRegistry;
   address public BancorEtherToken;
 
   enum PortalType { Bancor }
 
   constructor(address _bancorRegistry, address _bancorRatio, address _BancorEtherToken) public {
     bancorRatio = IGetRatioForBancorAssets(_bancorRatio);
-    bancorRegistry = IContractRegistry(_bancorRegistry);
+    bancorRegistry = IGetBancorAddressFromRegistrybancorRegistry.(_bancorRegistry);
     BancorEtherToken = _BancorEtherToken;
   }
 
@@ -118,11 +118,6 @@ contract PoolPortal {
     }
   }
 
-  function getBancorContractAddresByName(string _name) public view returns (address result){
-     bytes32 name = stringToBytes32.convert(_name);
-     result = bancorRegistry.addressOf(name);
-  }
-
   function getBacorConverterAddressByRelay(address relay) public view returns(address converter){
     converter = SmartTokenInterface(relay).owner();
   }
@@ -150,6 +145,10 @@ contract PoolPortal {
 
   // Calculate value for assets array in ration of some one assets (like ETH or DAI)
   function getTotalValue(address[] _fromAddresses, uint256[] _amounts, address _to) public view returns (uint256) {
+    // replace ETH with Bancor ETH wrapper
+    if(_to == address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee))
+      _to == BancorEtherToken;
+
     uint256 sum = 0;
 
     for (uint256 i = 0; i < _fromAddresses.length; i++) {
@@ -181,7 +180,7 @@ contract PoolPortal {
     uint256 ercBalance = converter.getConnectorBalance(ercConnector);
 
     // get bancor formula contract
-    IBancorFormula bancorFormula = IBancorFormula(getBancorContractAddresByName("BancorFormula"));
+    IBancorFormula bancorFormula = IBancorFormula(bancorRegistry.getBancorContractAddresByName("BancorFormula"));
 
     // calculate input
     bancorAmount = bancorFormula.calculateFundCost(_relay.totalSupply(), bntBalance, 100, _amount);

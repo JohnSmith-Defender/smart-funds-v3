@@ -451,7 +451,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       for(uint256 j = 0; j < relayAddresses.length; j++){
         relayAmounts[j] = ERC20(relayAddresses[i]).balanceOf(address(this));
       }
-      // NOTE ETH TOKEN ADDRESS SHOULD BE CHANGED TO BANCOR TOKEN ADDRESS IF TYPE BANCOR
       relayValue = poolPortal.getTotalValue(relayAddresses, relayAmounts, ETH_TOKEN_ADDRESS);
     }
     // NOT TESTED finish

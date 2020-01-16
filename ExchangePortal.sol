@@ -7,6 +7,7 @@ import "./zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
 import "./paraswap/ParaswapInterface.sol";
 import "./paraswap/IPriceFeed.sol";
 import "./paraswap/IParaswapParams.sol";
+import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
 
 /*
 * The ExchangePortal contract is an implementation of ExchangePortalInterface that allows
@@ -21,7 +22,9 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   IParaswapParams public paraswapParams;
   address public paraswapSpender;
 
-  enum ExchangeType { Paraswap }
+  IGetBancorAddressFromRegistry public bancorRegistry;
+
+  enum ExchangeType { Paraswap, Bancor }
 
   // Paraswap recognizes ETH by this address
   ERC20 constant private ETH_TOKEN_ADDRESS = ERC20(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
@@ -43,12 +46,20 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   * @param _paraswapPrice   paraswap price feed address
   * @param _paraswapParams  helper contract for convert params from bytes32
   */
-  constructor(address _paraswap, address _paraswapPrice, address _paraswapParams) public {
+  constructor(
+    address _paraswap,
+    address _paraswapPrice,
+    address _paraswapParams,
+    address _bancorRegistry
+    )
+    public
+    {
     paraswap = _paraswap;
     paraswapInterface = ParaswapInterface(_paraswap);
     priceFeedInterface = IPriceFeed(_paraswapPrice);
     paraswapParams = IParaswapParams(_paraswapParams);
     paraswapSpender = paraswapInterface.getTokenTransferProxy();
+    bancorRegistry = IGetBancorAddressFromRegistry(_bancorRegistry);
   }
 
 
@@ -98,7 +109,13 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
           _additionalData,
           _additionalArgs
       );
-    } else {
+    }
+    // SHOULD TRADE BANCOR HERE
+    else if (_type == uint(ExchangeType.Bancor)){
+
+    }
+
+    else {
       // unknown exchange type
       revert();
     }
@@ -178,6 +195,11 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
    destinationReceived = tokenBalance(ERC20(destinationToken));
  }
 
+ // Facilitates trade with Bancor
+ function _tradeViaBancorNewtork()private returns(uint256){
+
+ }
+
  function tokenBalance(ERC20 _token) private view returns (uint256) {
    if (_token == ETH_TOKEN_ADDRESS)
      return address(this).balance;
@@ -197,6 +219,8 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     _source.approve(_to, _sourceAmount);
   }
 
+  // TODO MOCK THIS
+  // BECAUSE PARASWAP NOT HAVE SUPPORT FOR NE BANCOR ASSETS IN ROPSTEN
   /**
   * @dev Gets the value of a given amount of some token
   *
