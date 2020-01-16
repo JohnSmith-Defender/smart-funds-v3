@@ -1,22 +1,39 @@
-// TODO shoulg get this address and BANCOR ETH address from Bancor registry 
+// TODO shoulg get this address and BANCOR ETH address from Bancor registry
 pragma solidity ^0.4.24;
 
 import "./PathFinderInterface.sol";
 import "./BancorNetworkInterface.sol";
+import "./IContractRegistry.sol";
 import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "../helpers/stringToBytes32.sol";
 
 contract GetRatioForBancorAssets {
-  BancorNetworkInterface public bancorNetwork;
-  PathFinderInterface public pathFinder;
+  using stringToBytes32 for string;
 
-  constructor(address _bancorNetwork, address _pathFinder) public{
-    bancorNetwork = BancorNetworkInterface(_bancorNetwork);
-    pathFinder = PathFinderInterface(_pathFinder);
+  IContractRegistry public bancorRegistry;
+
+  constructor(address _bancorRegistry) public{
+    bancorRegistry = IContractRegistry(_bancorRegistry);
+  }
+
+  // return contract address from Bancor registry by name
+  function getBancorContractAddresByName(string _name) public view returns (address result){
+     bytes32 name = stringToBytes32.convert(_name);
+     result = bancorRegistry.addressOf(name);
   }
 
   // Get Ratio between Bancor assets
   function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256 result){
     if(_amount > 0){
+      // get latest contracts
+      PathFinderInterface pathFinder = PathFinderInterface(
+        getBancorContractAddresByName("BancorNetworkPathFinder")
+      );
+
+      BancorNetworkInterface bancorNetwork = BancorNetworkInterface(
+        getBancorContractAddresByName("BancorNetwork")
+      );
+
       // get Bancor path array
       address[] memory path = pathFinder.generatePath(_from, _to);
       ERC20[] memory pathInERC20 = new ERC20[](path.length);

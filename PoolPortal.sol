@@ -19,12 +19,14 @@ contract PoolPortal {
 
   IGetRatioForBancorAssets public bancorRatio;
   IContractRegistry public bancorRegistry;
+  address public BancorEtherToken;
 
   enum PortalType { Bancor }
 
-  constructor(address _bancorRegistry, address _bancorRatio) public {
+  constructor(address _bancorRegistry, address _bancorRatio, address _BancorEtherToken) public {
     bancorRatio = IGetRatioForBancorAssets(_bancorRatio);
     bancorRegistry = IContractRegistry(_bancorRegistry);
+    BancorEtherToken = _BancorEtherToken;
   }
 
   function buyPool
@@ -107,7 +109,7 @@ contract PoolPortal {
       (ERC20 bancorConnector,
       ERC20 ercConnector) = getBancorConnectorsByRelay(address(_poolToken));
 
-      // transfer connectors back to fund 
+      // transfer connectors back to fund
       bancorConnector.transfer(msg.sender, bancorConnector.balanceOf(this));
       ercConnector.transfer(msg.sender, ercConnector.balanceOf(this));
     }else{
