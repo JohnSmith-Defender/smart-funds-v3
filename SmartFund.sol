@@ -380,13 +380,16 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     bytes32[] _additionalArgs
   )
   external onlyOwner {
+    _poolToken.approve(address(poolPortal), _amount);
+
     poolPortal.sellPool(
       _amount,
       _type,
      _poolToken,
       _additionalArgs
     );
-    // add returned assets in fund as tokens (for case if manager removed)
+
+    // add returned assets in fund as tokens (for case if manager removed this assets)
     (ERC20 bancorConnector, ERC20 ercConnector) = poolPortal.getBancorConnectorsByRelay(address(_poolToken));
     _addToken(address(bancorConnector));
     _addToken(address(ercConnector));
