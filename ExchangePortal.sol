@@ -8,6 +8,8 @@ import "./paraswap/ParaswapInterface.sol";
 import "./paraswap/IPriceFeed.sol";
 import "./paraswap/IParaswapParams.sol";
 import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
+import "./bancor/interfaces/BancorNetworkInterface.sol";
+import "./bancor/interfaces/PathFinderInterface.sol";
 
 /*
 * The ExchangePortal contract is an implementation of ExchangePortalInterface that allows
@@ -196,8 +198,21 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
  }
 
  // Facilitates trade with Bancor
- function _tradeViaBancorNewtork()private returns(uint256){
+ function _tradeViaBancorNewtork(
+   address sourceToken,
+   address destinationToken,
+   uint256 sourceAmount
+   )
+   private
+   returns(uint256)
+ {
+    BancorNetworkInterface bancorNetwork = BancorNetworkInterface(
+      bancorRegistry.getBancorContractAddresByName("BancorNetwork")
+    );
 
+    PathFinderInterface pathFinder = PathFinderInterface(
+      bancorRegistry.getBancorContractAddresByName("BancorNetworkPathFinder")
+    );
  }
 
  function tokenBalance(ERC20 _token) private view returns (uint256) {
