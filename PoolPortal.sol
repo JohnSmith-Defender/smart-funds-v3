@@ -52,6 +52,11 @@ contract PoolPortal {
       (ERC20 bancorConnector,
       ERC20 ercConnector) = getBancorConnectorsByRelay(address(_poolToken));
 
+      // reset approve (some ERC20 not allow do new approve if already approved)
+      bancorConnector.approve(converterAddress, 0);
+      ercConnector.approve(converterAddress, 0);
+
+      // transfer from fund and approve to converter
       _transferFromSenderAndApproveTo(bancorConnector, bancorAmount, converterAddress);
       _transferFromSenderAndApproveTo(ercConnector, connectorAmount, converterAddress);
 
@@ -60,7 +65,17 @@ contract PoolPortal {
 
       // transfer relay back to smart fund
       _poolToken.transfer(msg.sender, _amount);
-    }else{
+
+      // transfer connectors back if a small amount remains
+      uint256 bancorRemains = bancorConnector.balanceOf(address(this));
+      if(bancorRemains > 0)
+         bancorConnector.transfer(msg.sender, bancorRemains);
+
+      uint256 ercRemains = ercConnector.balanceOf(address(this));
+      if(ercRemains > 0)
+          ercConnector.transfer(msg.sender, ercRemains);
+
+      }else{
       // unknown portal type
       revert();
     }
