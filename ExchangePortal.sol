@@ -1,12 +1,15 @@
 pragma solidity ^0.4.24;
 
 import "./ExchangePortalInterface.sol";
+
 import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
-import "./paraswap/ParaswapInterface.sol";
-import "./paraswap/IPriceFeed.sol";
-import "./paraswap/IParaswapParams.sol";
+
+import "./interfaces/paraswap/ParaswapInterface.sol";
+import "./interfaces/paraswap/IPriceFeed.sol";
+import "./interfaces/paraswap/IParaswapParams.sol";
+
 import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
 import "./bancor/interfaces/BancorNetworkInterface.sol";
 import "./bancor/interfaces/PathFinderInterface.sol";
@@ -229,7 +232,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
       returnAmount = bancorNetwork.claimAndConvert(path, sourceAmount, 1);
     }
  }
- 
+
 
  function tokenBalance(ERC20 _token) private view returns (uint256) {
    if (_token == ETH_TOKEN_ADDRESS)
