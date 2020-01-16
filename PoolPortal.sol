@@ -49,6 +49,8 @@ contract PoolPortal {
       BancorConverterInterface converter = BancorConverterInterface(converterAddress);
 
       // approve bancor and coonector amount to converter
+
+      // get connectors
       (ERC20 bancorConnector,
       ERC20 ercConnector) = getBancorConnectorsByRelay(address(_poolToken));
 
@@ -92,25 +94,22 @@ contract PoolPortal {
   payable
   {
     if(_type == uint(PortalType.Bancor)){
+      // transfer pool from fund
+      _poolToken.transferFrom(msg.sender, address(this), _amount);
+
       // get Bancor Converter address
       address converterAddress = getBacorConverterAddressByRelay(address(_poolToken));
 
-      // calculate connectors amount for fet after liquidate
-      (uint256 bancorAmount,
-       uint256 connectorAmount) = getBancorConnectorsAmountByRelayAmount(_amount, _poolToken);
-
-      // get converter as contract
-      BancorConverterInterface converter = BancorConverterInterface(converterAddress);
-
       // liquidate relay
-      converter.liquidate(_amount);
+      BancorConverterInterface(converterAddress).liquidate(_amount);
 
-      // transfer assets back to smart fund
+      // get connectors
       (ERC20 bancorConnector,
       ERC20 ercConnector) = getBancorConnectorsByRelay(address(_poolToken));
 
-      bancorConnector.transfer(msg.sender, bancorAmount);
-      ercConnector.transfer(msg.sender, connectorAmount);
+      // transfer connectors back to fund 
+      bancorConnector.transfer(msg.sender, bancorConnector.balanceOf(this));
+      ercConnector.transfer(msg.sender, ercConnector.balanceOf(this));
     }else{
       // unknown portal type
       revert();
