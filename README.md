@@ -7,5 +7,7 @@ Main TODO
 2) Make flexible deposit (not only ETH)
 
 NOTE
-getBestPriceSimple - not take into account Bancor new assest especialy in Ropsten 
+getBestPriceSimple - not take into account Bancor new assest especialy in Ropsten
+Make paraswap mosk with get price from Bancor
+Write contract wit method getBestPriceSimple
 ```

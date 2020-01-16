@@ -114,7 +114,11 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     }
     // SHOULD TRADE BANCOR HERE
     else if (_type == uint(ExchangeType.Bancor)){
-
+      receivedAmount = _tradeViaBancorNewtork(
+          _source,
+          _destination,
+          _sourceAmount
+      );
     }
 
     else {
@@ -197,6 +201,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
    destinationReceived = tokenBalance(ERC20(destinationToken));
  }
 
+
  // Facilitates trade with Bancor
  function _tradeViaBancorNewtork(
    address sourceToken,
@@ -204,7 +209,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
    uint256 sourceAmount
    )
    private
-   returns(uint256)
+   returns(uint256 returnAmount)
  {
     BancorNetworkInterface bancorNetwork = BancorNetworkInterface(
       bancorRegistry.getBancorContractAddresByName("BancorNetwork")
@@ -213,7 +218,18 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     PathFinderInterface pathFinder = PathFinderInterface(
       bancorRegistry.getBancorContractAddresByName("BancorNetworkPathFinder")
     );
+
+    address[] memory path = pathFinder.generatePath(_from, _to);
+
+    if (ERC20(sourceToken) == ETH_TOKEN_ADDRESS) {
+      returnAmount = bancorNetwork.convert(path, sourceAmount, 1).value(sourceAmount);
+    }
+    else {
+      _transferFromSenderAndApproveTo(ERC20(sourceToken), sourceAmount, paraswapSpender);
+      returnAmount = bancorNetwork.claimAndConvert(path, sourceAmount, 1);
+    }
  }
+ 
 
  function tokenBalance(ERC20 _token) private view returns (uint256) {
    if (_token == ETH_TOKEN_ADDRESS)
@@ -234,8 +250,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     _source.approve(_to, _sourceAmount);
   }
 
-  // TODO MOCK THIS
-  // BECAUSE PARASWAP NOT HAVE SUPPORT FOR NE BANCOR ASSETS IN ROPSTEN
+
   /**
   * @dev Gets the value of a given amount of some token
   *
