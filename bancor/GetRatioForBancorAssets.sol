@@ -5,11 +5,9 @@ import "./interfaces/PathFinderInterface.sol";
 import "./interfaces/BancorNetworkInterface.sol";
 import "./interfaces/IGetBancorAddressFromRegistry.sol";
 import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "../helpers/stringToBytes32.sol";
+
 
 contract GetRatioForBancorAssets {
-  using stringToBytes32 for string;
-
   IGetBancorAddressFromRegistry public bancorRegistry;
 
   constructor(address _bancorRegistry) public{

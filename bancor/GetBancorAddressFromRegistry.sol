@@ -1,9 +1,11 @@
 pragma solidity ^0.4.24;
 
 import "./interfaces/IContractRegistry.sol";
+import "../helpers/stringToBytes32.sol";
+import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
-
-contract GetBancorAddressFromRegistry {
+contract GetBancorAddressFromRegistry is Ownable{
+  using stringToBytes32 for string;
   IContractRegistry public bancorRegistry;
 
   constructor(address _bancorRegistry)public{
@@ -14,5 +16,9 @@ contract GetBancorAddressFromRegistry {
   function getBancorContractAddresByName(string _name) public view returns (address result){
      bytes32 name = stringToBytes32.convert(_name);
      result = bancorRegistry.addressOf(name);
+  }
+
+  changeRegistryAddress(address _bancorRegistry) public onlyOwner{
+    bancorRegistry = IContractRegistry(_bancorRegistry);
   }
 }

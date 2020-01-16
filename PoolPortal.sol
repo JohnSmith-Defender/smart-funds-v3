@@ -10,12 +10,9 @@ import "./bancor/interfaces/SmartTokenInterface.sol";
 import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
 import "./bancor/interfaces/IBancorFormula.sol";
 
-import "./helpers/stringToBytes32.sol";
-
 
 contract PoolPortal {
   using SafeMath for uint256;
-  using stringToBytes32 for string;
 
   IGetRatioForBancorAssets public bancorRatio;
   IGetBancorAddressFromRegistry public bancorRegistry;
