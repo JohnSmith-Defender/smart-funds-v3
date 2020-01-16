@@ -1,4 +1,3 @@
-// TODO shoulg get this address and BANCOR ETH address from Bancor registry
 pragma solidity ^0.4.24;
 
 import "./interfaces/PathFinderInterface.sol";
@@ -10,11 +9,23 @@ import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
 contract GetRatioForBancorAssets {
   IGetBancorAddressFromRegistry public bancorRegistry;
 
-  constructor(address _bancorRegistry) public{
-    bancorRegistry = IGetBancorAddressFromRegistry(_bancorRegistry);
+  /**
+  * @dev contructor
+  *
+  * @param bancorRegistryWrapper  address of GetBancorAddressFromRegistry
+  */
+  constructor(address bancorRegistryWrapper) public{
+    bancorRegistry = IGetBancorAddressFromRegistry(bancorRegistryWrapper);
   }
 
-  // Get Ratio between Bancor assets
+
+  /**
+  * @dev get ratio between Bancor assets
+  *
+  * @param _from  ERC20 or Relay
+  * @param _to  ERC20 or Relay
+  * @param _amount  amount for _from
+  */
   function getRatio(address _from, address _to, uint256 _amount) public view returns(uint256 result){
     if(_amount > 0){
       // get latest contracts

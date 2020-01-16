@@ -18,7 +18,7 @@ contract GetBancorAddressFromRegistry is Ownable{
      result = bancorRegistry.addressOf(name);
   }
 
-  changeRegistryAddress(address _bancorRegistry) public onlyOwner{
+  function changeRegistryAddress(address _bancorRegistry) public onlyOwner{
     bancorRegistry = IContractRegistry(_bancorRegistry);
   }
 }

@@ -20,9 +20,16 @@ contract PoolPortal {
 
   enum PortalType { Bancor }
 
-  constructor(address _bancorRegistry, address _bancorRatio, address _BancorEtherToken) public {
+  /**
+  * @dev contructor
+  *
+  * @param bancorRegistryWrapper  address of GetBancorAddressFromRegistry
+  * @param _bancorRatio  address of GetRatioForBancorAssets
+  * @param _BancorEtherToken  address of Bancor ETH wrapper
+  */
+  constructor(address bancorRegistryWrapper, address _bancorRatio, address _BancorEtherToken) public {
+    bancorRegistry = IGetBancorAddressFromRegistry(bancorRegistryWrapper);
     bancorRatio = IGetRatioForBancorAssets(_bancorRatio);
-    bancorRegistry = IGetBancorAddressFromRegistrybancorRegistry.(_bancorRegistry);
     BancorEtherToken = _BancorEtherToken;
   }
 
