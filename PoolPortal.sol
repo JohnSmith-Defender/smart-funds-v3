@@ -1,23 +1,30 @@
 // TODO write docs for methods
 pragma solidity ^0.4.24;
 
+import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "./zeppelin-solidity/contracts/math/SafeMath.sol";
+
 import "./bancor/BancorConverterInterface.sol";
 import "./bancor/IGetRatioForBancorAssets.sol";
 import "./bancor/SmartTokenInterface.sol";
-import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./zeppelin-solidity/contracts/math/SafeMath.sol";
-import "./helpers/addressFromBytes32.sol";
+import "./bancor/IContractRegistry.sol";
+import "./bancor/IBancorFormula.sol";
+
+import "./helpers/stringToBytes32.sol";
 
 
 contract PoolPortal {
   using SafeMath for uint256;
-  using addressFromBytes32 for bytes32;
+  using stringToBytes32 for string;
+
   IGetRatioForBancorAssets public bancorRatio;
+  IContractRegistry public bancorRegistry;
 
   enum PortalType { Bancor }
 
-  constructor(address _bancorRatio) public {
+  constructor(address _bancorRegistry, address _bancorRatio) public {
     bancorRatio = IGetRatioForBancorAssets(_bancorRatio);
+    bancorRegistry = IContractRegistry(_bancorRegistry);
   }
 
   function buyPool
@@ -95,6 +102,11 @@ contract PoolPortal {
     }
   }
 
+  function getBancorContractAddresByName(string _name) public view returns (address result){
+     bytes32 name = stringToBytes32.convert(_name);
+     result = bancorRegistry.addressOf(name);
+  }
+
   function getBacorConverterAddressByRelay(address relay) public view returns(address converter){
     converter = SmartTokenInterface(relay).owner();
   }
@@ -139,12 +151,8 @@ contract PoolPortal {
     ERC20 _relay
   )
   public view returns(uint256 bancorAmount, uint256 connectorAmount) {
-    // get converter
-    address converterAddress = SmartTokenInterface(_relay).owner();
-    // get relay supply
-    uint256 supply = _relay.totalSupply();
-    // get converter as contract
-    BancorConverterInterface converter = BancorConverterInterface(converterAddress);
+    // get converter contract
+    BancorConverterInterface converter = BancorConverterInterface(SmartTokenInterface(_relay).owner());
 
     // calculate BNT and second connector amount
 
@@ -156,9 +164,12 @@ contract PoolPortal {
     uint256 bntBalance = converter.getConnectorBalance(bancorConnector);
     uint256 ercBalance = converter.getConnectorBalance(ercConnector);
 
-    // calculate according this formula input * connector balance / smart token supply
-    bancorAmount = _amount.mul(bntBalance).div(supply);
-    connectorAmount = _amount.mul(ercBalance).div(supply);
+    // get bancor formula contract
+    IBancorFormula bancorFormula = IBancorFormula(getBancorContractAddresByName("BancorFormula"));
+
+    // calculate input
+    bancorAmount = bancorFormula.calculateFundCost(_relay.totalSupply(), bntBalance, 100, _amount);
+    connectorAmount = bancorFormula.calculateFundCost(_relay.totalSupply(), ercBalance, 100, _amount);
   }
 
 
