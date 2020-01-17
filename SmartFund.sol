@@ -435,6 +435,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       return ethBalance;
 
     // Otherwise, we get the value of all the other tokens in ether via exchangePortal
+
+    // Calculate value for ERC20
     address[] memory fromAddresses = new address[](tokenAddresses.length - 1);
     uint256[] memory amounts = new uint256[](tokenAddresses.length - 1);
 
@@ -443,22 +445,21 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
       amounts[i-1] = ERC20(tokenAddresses[i]).balanceOf(address(this));
     }
 
-    // NOT TESTED (get relay value) start
+    // Ask the Exchange Portal for the value of all the funds tokens in eth
+    uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, ETH_TOKEN_ADDRESS);
+
+    // Calculate value for relays
     uint256 relayValue = 0;
-    // take into account relats if fund hold some relay
     if(relayAddresses.length > 0){
       uint256 [] memory relayAmounts = new uint256[](relayAddresses.length);
       for(uint256 j = 0; j < relayAddresses.length; j++){
         relayAmounts[j] = ERC20(relayAddresses[i]).balanceOf(address(this));
       }
+      // Ask the Pool Portal for the value of all relays in eth
       relayValue = poolPortal.getTotalValue(relayAddresses, relayAmounts, ETH_TOKEN_ADDRESS);
     }
-    // NOT TESTED finish
 
-    // Ask the Exchange Portal for the value of all the funds tokens in eth
-    uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, ETH_TOKEN_ADDRESS);
-
-    // NOT TESTED (Take into account relay value)
+    // Sum ETH + ERC20 + RELAYS
     return ethBalance + tokensValue + relayValue;
   }
 

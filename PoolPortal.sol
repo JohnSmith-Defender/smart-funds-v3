@@ -18,6 +18,9 @@ contract PoolPortal {
   IGetBancorAddressFromRegistry public bancorRegistry;
   address public BancorEtherToken;
 
+  // Paraswap and Kyber recognizes ETH by this address
+  ERC20 constant private ETH_TOKEN_ADDRESS = ERC20(0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE);
+
   enum PortalType { Bancor }
 
   /**
@@ -150,13 +153,11 @@ contract PoolPortal {
   // Calculate value for assets array in ration of some one assets (like ETH or DAI)
   function getTotalValue(address[] _fromAddresses, uint256[] _amounts, address _to) public view returns (uint256) {
     // replace ETH with Bancor ETH wrapper
-    if(_to == address(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee))
-      _to == BancorEtherToken;
-
+    address to = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : _to;
     uint256 sum = 0;
 
     for (uint256 i = 0; i < _fromAddresses.length; i++) {
-      sum = sum.add(getRatio(_fromAddresses[i], _to, _amounts[i]));
+      sum = sum.add(getRatio(_fromAddresses[i], to, _amounts[i]));
     }
 
     return sum;
