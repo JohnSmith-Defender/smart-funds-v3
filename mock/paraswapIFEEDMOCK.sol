@@ -12,14 +12,18 @@ import "../bancor/interfaces/BancorNetworkInterface.sol";
 
 contract paraswapIFEEDMOCK{
   IGetBancorAddressFromRegistry public bancorRegistry;
+  address public BancorEtherToken;
+  ERC20 constant private ETH_TOKEN_ADDRESS = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
   /**
   * @dev contructor
   *
   * @param bancorRegistryWrapper  address of GetBancorAddressFromRegistry
+  * @param _BancorEtherToken  address of Bancor ETH wrapper
   */
-  constructor(address bancorRegistryWrapper) public{
+  constructor(address bancorRegistryWrapper, address _BancorEtherToken) public{
     bancorRegistry = IGetBancorAddressFromRegistry(bancorRegistryWrapper);
+    BancorEtherToken = _BancorEtherToken;
   }
 
 
@@ -41,8 +45,11 @@ contract paraswapIFEEDMOCK{
         bancorRegistry.getBancorContractAddresByName("BancorNetwork")
       );
 
+      // Change dest to Bancor ETH wrapper
+      address dest = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : _to;
+
       // get Bancor path array
-      address[] memory path = pathFinder.generatePath(_from, _to);
+      address[] memory path = pathFinder.generatePath(_from, dest);
       ERC20[] memory pathInERC20 = new ERC20[](path.length);
 
       // Convert addresses to ERC20
