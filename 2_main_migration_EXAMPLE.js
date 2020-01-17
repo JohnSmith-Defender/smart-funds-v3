@@ -29,16 +29,15 @@ module.exports = (deployer, network, accounts) => {
       PARASWAP_NETWORK_ADDRESS,
       PRICE_FEED_ADDRESS,
       ParaswapParams.address,
-      PoolPortal.address,
-      GetBancorAddressFromRegistry.address
+      GetBancorAddressFromRegistry.address,
+      BANCOR_ETH_WRAPPER
     ))
     .then(() => deployer.deploy(PermittedExchanges, ExchangePortal.address))
-    .then(() =>
-      deployer.deploy(
-        SmartFundRegistry,
-        PLATFORM_FEE,
-        ExchangePortal.address,
-        PermittedExchanges.address,
-      )
-    )
+    .then(() => deployer.deploy(
+      SmartFundRegistry,
+      PLATFORM_FEE,
+      ExchangePortal.address,
+      PermittedExchanges.address,
+      PoolPortal.address
+    ))
 }

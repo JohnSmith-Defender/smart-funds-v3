@@ -31,6 +31,7 @@ contract SmartFundRegistry is Ownable {
   * @param _platformFee                  Initial platform fee
   * @param _exchangePortalAddress        Address of the initial ExchangePortal contract
   * @param _permittedExchangesAddress    Address of the permittedExchanges contract
+  * @param _poolPortalAddress            Address of PoolPortal contract 
   */
   constructor(
     uint256 _platformFee,

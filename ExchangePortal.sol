@@ -1,18 +1,19 @@
 pragma solidity ^0.4.24;
 
-import "./ExchangePortalInterface.sol";
 
 import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./zeppelin-solidity/contracts/math/SafeMath.sol";
 import "./zeppelin-solidity/contracts/token/ERC20/DetailedERC20.sol";
 
-import "./interfaces/paraswap/ParaswapInterface.sol";
-import "./interfaces/paraswap/IPriceFeed.sol";
-import "./interfaces/paraswap/IParaswapParams.sol";
+import "./paraswap/interfaces/ParaswapInterface.sol";
+import "./paraswap/interfaces/IPriceFeed.sol";
+import "./paraswap/interfaces/IParaswapParams.sol";
 
 import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
 import "./bancor/interfaces/BancorNetworkInterface.sol";
 import "./bancor/interfaces/PathFinderInterface.sol";
+
+import "./ExchangePortalInterface.sol";
 
 /*
 * The ExchangePortal contract is an implementation of ExchangePortalInterface that allows
@@ -27,6 +28,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   IParaswapParams public paraswapParams;
   address public paraswapSpender;
 
+  address public BancorEtherToken;
   IGetBancorAddressFromRegistry public bancorRegistry;
 
   enum ExchangeType { Paraswap, Bancor }
@@ -50,12 +52,14 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   * @param _paraswap        paraswap main address
   * @param _paraswapPrice   paraswap price feed address
   * @param _paraswapParams  helper contract for convert params from bytes32
+  * @param _BancorEtherToken address of Bancor ETH wrapper
   */
   constructor(
     address _paraswap,
     address _paraswapPrice,
     address _paraswapParams,
-    address _bancorRegistry
+    address _bancorRegistry,
+    address _BancorEtherToken
     )
     public
     {
@@ -65,6 +69,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     paraswapParams = IParaswapParams(_paraswapParams);
     paraswapSpender = paraswapInterface.getTokenTransferProxy();
     bancorRegistry = IGetBancorAddressFromRegistry(_bancorRegistry);
+    BancorEtherToken = _BancorEtherToken;
   }
 
 
@@ -214,6 +219,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
    private
    returns(uint256 returnAmount)
  {
+    // get latest bancor contracts
     BancorNetworkInterface bancorNetwork = BancorNetworkInterface(
       bancorRegistry.getBancorContractAddresByName("BancorNetwork")
     );
@@ -222,14 +228,25 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
       bancorRegistry.getBancorContractAddresByName("BancorNetworkPathFinder")
     );
 
-    address[] memory path = pathFinder.generatePath(_from, _to);
+    // Change source to Bancor ETH wrapper
+    address source = ERC20(sourceToken) == ETH_TOKEN_ADDRESS ? BancorEtherToken : sourceToken;
 
+    // Get Bancor tokens path
+    address[] memory path = pathFinder.generatePath(source, destinationToken);
+
+    // Convert addresses to ERC20
+    ERC20[] memory pathInERC20 = new ERC20[](path.length);
+    for(uint i=0; i<path.length; i++){
+        pathInERC20[i] = ERC20(path[i]);
+    }
+
+    // trade
     if (ERC20(sourceToken) == ETH_TOKEN_ADDRESS) {
-      returnAmount = bancorNetwork.convert(path, sourceAmount, 1).value(sourceAmount);
+      returnAmount = bancorNetwork.convert.value(sourceAmount)(pathInERC20, sourceAmount, 1);
     }
     else {
       _transferFromSenderAndApproveTo(ERC20(sourceToken), sourceAmount, paraswapSpender);
-      returnAmount = bancorNetwork.claimAndConvert(path, sourceAmount, 1);
+      returnAmount = bancorNetwork.claimAndConvert(pathInERC20, sourceAmount, 1);
     }
  }
 
