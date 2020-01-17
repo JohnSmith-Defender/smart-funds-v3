@@ -301,7 +301,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
 
-  // NOT TESTED
+
   /**
   * @dev buy pool via pool portal
   *
@@ -364,7 +364,6 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
 
-  // NOT TESTED
   /**
   * @dev sell pool via pool portal
   *
@@ -513,7 +512,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   }
 
 
-  // NOT TESTED
+
   /**
   * @dev Adds a relay to fund relays
   * @param _relay   The relay to add
@@ -522,7 +521,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     relayAddresses.push(_relay);
   }
 
-  // NOT TESTED
+
   /**
   * @dev Removes a relay from relayAddresses
   *
