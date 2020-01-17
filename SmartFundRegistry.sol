@@ -31,7 +31,7 @@ contract SmartFundRegistry is Ownable {
   * @param _platformFee                  Initial platform fee
   * @param _exchangePortalAddress        Address of the initial ExchangePortal contract
   * @param _permittedExchangesAddress    Address of the permittedExchanges contract
-  * @param _poolPortalAddress            Address of PoolPortal contract 
+  * @param _poolPortalAddress            Address of PoolPortal contract
   */
   constructor(
     uint256 _platformFee,
@@ -134,6 +134,15 @@ contract SmartFundRegistry is Ownable {
   */
   function withdrawEther() external onlyOwner {
     owner.transfer(address(this).balance);
+  }
+
+  /**
+  * @dev Sets a new default Portal Portal address
+  *
+  * @param _poolPortalAddress    Address of the new pool portal to be set
+  */
+  function setNewPoolPortalAddress (address _poolPortalAddress) external onlyOwner {
+     poolPortalAddress = _poolPortalAddress
   }
 
   // Fallback payable function in order to receive ether when fund manager withdraws their cut
