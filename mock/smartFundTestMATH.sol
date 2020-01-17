@@ -1,7 +1,5 @@
 pragma solidity ^0.4.24;
 
-pragma solidity ^0.4.24;
-
 
 /**
  * @title ERC20Basic
@@ -177,8 +175,10 @@ contract smartFundTestMATH {
     tokenAddresses.push(_token);
   }
 
-  function _addRelay(address _relay) private {
+  function _addRelay(address _relay) public {
     relayAddresses.push(_relay);
   }
 
+  // Fallback payable function in order to be able to receive ether from other contracts
+  function() public payable {}
 }
