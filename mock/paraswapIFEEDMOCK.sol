@@ -1,11 +1,14 @@
 // NO NEED FOR MAINNET
 // THIS need for getBestPriceSimple function ONLY FOR ROPSTEN!!!
-// FOR Bancor ropsten assets! 
+// FOR Bancor ropsten assets!
 
 
 pragma solidity ^0.4.24;
-import "../bancor/interfaces/IGetBancorAddressFromRegistry.sol";
 
+import "../bancor/interfaces/IGetBancorAddressFromRegistry.sol";
+import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "../bancor/interfaces/PathFinderInterface.sol";
+import "../bancor/interfaces/BancorNetworkInterface.sol";
 
 contract paraswapIFEEDMOCK{
   IGetBancorAddressFromRegistry public bancorRegistry;
