@@ -142,7 +142,7 @@ contract SmartFundRegistry is Ownable {
   * @param _poolPortalAddress    Address of the new pool portal to be set
   */
   function setNewPoolPortalAddress (address _poolPortalAddress) external onlyOwner {
-     poolPortalAddress = _poolPortalAddress
+     poolPortalAddress = _poolPortalAddress;
   }
 
   // Fallback payable function in order to receive ether when fund manager withdraws their cut

@@ -12,6 +12,8 @@ import "./paraswap/interfaces/IParaswapParams.sol";
 import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
 import "./bancor/interfaces/BancorNetworkInterface.sol";
 import "./bancor/interfaces/PathFinderInterface.sol";
+import "./bancor/interfaces/IGetRatioForBancorAssets.sol";
+
 
 import "./ExchangePortalInterface.sol";
 
@@ -28,6 +30,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   IParaswapParams public paraswapParams;
   address public paraswapSpender;
 
+  IGetRatioForBancorAssets public getBancorRatio;
   address public BancorEtherToken;
   IGetBancorAddressFromRegistry public bancorRegistry;
 
@@ -53,13 +56,15 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   * @param _paraswapPrice   paraswap price feed address
   * @param _paraswapParams  helper contract for convert params from bytes32
   * @param _BancorEtherToken address of Bancor ETH wrapper
+  * @param _getBancorRatio address of GetRatioForBancorAssets
   */
   constructor(
     address _paraswap,
     address _paraswapPrice,
     address _paraswapParams,
     address _bancorRegistry,
-    address _BancorEtherToken
+    address _BancorEtherToken,
+    address _getBancorRatio
     )
     public
     {
@@ -70,6 +75,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     paraswapSpender = paraswapInterface.getTokenTransferProxy();
     bancorRegistry = IGetBancorAddressFromRegistry(_bancorRegistry);
     BancorEtherToken = _BancorEtherToken;
+    getBancorRatio = IGetRatioForBancorAssets(_getBancorRatio);
   }
 
 
@@ -282,7 +288,18 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   */
   function getValue(address _from, address _to, uint256 _amount) public view returns (uint256 value) {
      if(_amount > 0){
-       value = priceFeedInterface.getBestPriceSimple(_from, _to, _amount);
+       uint256 paraswapResult = priceFeedInterface.getBestPriceSimple(_from, _to, _amount);
+       // Paraswap not support some Bancor assets, so we need check Bancor directly for ensure
+       // if Paraswap return 0
+       if(paraswapResult > 0){
+         value = paraswapResult;
+       }else{
+         // Change ETH to Bancor ETH wrapper
+         address from = ERC20(_from) == ETH_TOKEN_ADDRESS ? BancorEtherToken : from;
+         address to = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : to;
+         // get Bancor rate
+         value = getBancorRatio.getRatio(from, _to, _amount);
+       }
      }else{
        value = 0;
      }

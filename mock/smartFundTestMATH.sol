@@ -1,3 +1,6 @@
+// JUST FOR TEST MATH Directly
+// NO NEED DEPLOY this with platform 
+
 pragma solidity ^0.4.24;
 
 
@@ -99,8 +102,8 @@ contract smartFundTestMATH {
   // An array of all the erc20 token addresses the smart fund holds
   address[] public tokenAddresses;
 
-  // An array of list pool relays addresses
-  address[] public relayAddresses;
+  // KyberExchange recognizes ETH by this address
+  ERC20 constant private ETH_TOKEN_ADDRESS = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
 
   // The Interface of pool portall
   PoolPortalInterface public poolPortal;
@@ -108,14 +111,13 @@ contract smartFundTestMATH {
   // The Interface of the Exchange Portal
   ExchangePortalInterface public exchangePortal;
 
-  // KyberExchange recognizes ETH by this address
-  ERC20 constant private ETH_TOKEN_ADDRESS = ERC20(0x00eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee);
+  // mapping for check is relay or not
+  mapping(address => bool) public isRelay;
+
 
 
   constructor(
-
     address _exchangePortalAddress,
-
     address _poolPortal
   ) public {
 
@@ -129,7 +131,7 @@ contract smartFundTestMATH {
   }
 
 
-    /**
+  /**
   * @dev Calculates the funds value in deposit token (Ether)
   *
   * @return The current total fund value
@@ -155,19 +157,8 @@ contract smartFundTestMATH {
     // Ask the Exchange Portal for the value of all the funds tokens in eth
     uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, ETH_TOKEN_ADDRESS);
 
-    // Calculate value for relays
-    uint256 relayValue = 0;
-    if(relayAddresses.length > 0){
-      uint256 [] memory relayAmounts = new uint256[](relayAddresses.length);
-      for(uint256 j = 0; j < relayAddresses.length; j++){
-        relayAmounts[j] = ERC20(relayAddresses[i]).balanceOf(address(this));
-      }
-      // Ask the Pool Portal for the value of all relays in eth
-      relayValue = poolPortal.getTotalValue(relayAddresses, relayAmounts, ETH_TOKEN_ADDRESS);
-    }
-
-    // Sum ETH + ERC20 + RELAYS
-    return ethBalance + tokensValue + relayValue;
+    // Sum ETH + ERC20
+    return ethBalance + tokensValue;
   }
 
 
@@ -176,7 +167,7 @@ contract smartFundTestMATH {
   }
 
   function _addRelay(address _relay) public {
-    relayAddresses.push(_relay);
+    isRelay[_relay] = true;
   }
 
   // Fallback payable function in order to be able to receive ether from other contracts

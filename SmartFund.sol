@@ -1,8 +1,6 @@
 pragma solidity ^0.4.24;
 
 import "./SmartFundInterface.sol";
-import "./PoolPortalInterface.sol";
-
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -74,8 +72,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   // An array of all the erc20 token addresses the smart fund holds
   address[] public tokenAddresses;
 
-  // An array of list pool relays addresses
-  address[] public relayAddresses;
+  // mapping for check certain token is relay or not
+  mapping(address => bool) public isRelay;
 
   // Boolean value that determines whether the fund accepts deposits from anyone or
   // only specific addresses approved by the manager
@@ -354,8 +352,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     if(poolBalance > 0){
       // Add relay as ERC20 for withdraw assets
       _addToken(address(_poolToken));
-      // Add relay as Relay for calculate relay value
-      _addRelay(address(_poolToken));
+      // Mark this token as relay
+      _markAsRelay(address(_poolToken));
     }
 
     // reset approve
@@ -421,6 +419,7 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   }
 
+
   /**
   * @dev Calculates the funds value in deposit token (Ether)
   *
@@ -447,20 +446,11 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Ask the Exchange Portal for the value of all the funds tokens in eth
     uint256 tokensValue = exchangePortal.getTotalValue(fromAddresses, amounts, ETH_TOKEN_ADDRESS);
 
-    // Calculate value for relays
-    uint256 relayValue = 0;
-    if(relayAddresses.length > 0){
-      uint256 [] memory relayAmounts = new uint256[](relayAddresses.length);
-      for(uint256 j = 0; j < relayAddresses.length; j++){
-        relayAmounts[j] = ERC20(relayAddresses[i]).balanceOf(address(this));
-      }
-      // Ask the Pool Portal for the value of all relays in eth
-      relayValue = poolPortal.getTotalValue(relayAddresses, relayAmounts, ETH_TOKEN_ADDRESS);
-    }
-
-    // Sum ETH + ERC20 + RELAYS
-    return ethBalance + tokensValue + relayValue;
+    // Sum ETH + ERC20
+    return ethBalance + tokensValue;
   }
+
+
 
   function getAllTokenAddresses() public view returns (address[]) {
     return tokenAddresses;
@@ -514,48 +504,26 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
 
   /**
-  * @dev Adds a relay to fund relays
-  * @param _relay   The relay to add
+  * @dev mark ERC20 as relay
+  * @param _token   The token address to mark as relay
   */
-  function _addRelay(address _relay) private {
-    relayAddresses.push(_relay);
+  function _markAsRelay(address _token) private {
+    isRelay[_token] = true;
   }
 
-
-  /**
-  * @dev Removes a relay from relayAddresses
-  *
-  * @param _relay         The address of the relay to be removed
-  * @param _relayIndex    The index of the relay to be removed
-  *
-  */
-  function removeRelay(address _relay, uint256 _relayIndex) public onlyOwner {
-    require(ERC20(_relay).balanceOf(address(this)) == 0);
-    require(relayAddresses[_relayIndex] == _relay);
-
-    // remove relay from array
-    uint256 arrayLength = relayAddresses.length - 1;
-    relayAddresses[_relayIndex] = relayAddresses[arrayLength];
-    delete relayAddresses[arrayLength];
-    relayAddresses.length--;
-  }
-
-  // This method should be removed asap, all this data can be grabbed without this method,
-  // albeit with a few more calls required
+  // get all fund data in one call
   function getSmartFundData() public view returns (
     address _owner,
     string _name,
     uint256 _totalShares,
     address[] _tokenAddresses,
-    uint256 _successFee,
-    address[] _relayAddresses
+    uint256 _successFee
   ) {
     _owner = owner;
     _name = name;
     _totalShares = totalShares;
     _tokenAddresses = tokenAddresses;
     _successFee = successFee;
-    _relayAddresses = relayAddresses;
   }
 
   /**

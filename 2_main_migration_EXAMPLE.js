@@ -30,7 +30,8 @@ module.exports = (deployer, network, accounts) => {
       PRICE_FEED_ADDRESS,
       ParaswapParams.address,
       GetBancorAddressFromRegistry.address,
-      BANCOR_ETH_WRAPPER
+      BANCOR_ETH_WRAPPER,
+      GetRatioForBancorAssets.address
     ))
     .then(() => deployer.deploy(PermittedExchanges, ExchangePortal.address))
     .then(() => deployer.deploy(
