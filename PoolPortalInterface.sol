@@ -25,6 +25,13 @@ contract PoolPortalInterface {
 
   function getBacorConverterAddressByRelay(address relay) public view returns(address converter);
 
+  function getBancorConnectorsAmountByRelayAmount
+  (
+    uint256 _amount,
+    ERC20 _relay
+  )
+  public view returns(uint256 bancorAmount, uint256 connectorAmount);
+
   function getBancorConnectorsByRelay(address relay)
   public
   view
