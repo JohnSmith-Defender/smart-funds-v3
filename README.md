@@ -1,13 +1,8 @@
-# smart-funds-v3 (NOT FINISHED)
+# smart-funds-v3
 
 ```
-Main TODO
-0) Contract for get value in ETH (DAI, USDT and another stables) for relay
-1) Fund should take into account Bancor relays (for profit, share, and manager cut)
-2) Make flexible deposit (not only ETH)
+Description: Added pools support
 
-NOTE
-getBestPriceSimple - not take into account Bancor new assest especialy in Ropsten
-Make paraswap mosk with get price from Bancor
-Write contract wit method getBestPriceSimple
+
+
 ```

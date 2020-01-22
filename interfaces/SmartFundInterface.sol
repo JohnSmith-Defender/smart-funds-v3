@@ -3,10 +3,10 @@ pragma solidity ^0.4.24;
 import "./ExchangePortalInterface.sol";
 import "./PoolPortalInterface.sol";
 import "./PermittedExchangesInterface.sol";
-import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
-import "./zeppelin-solidity/contracts/math/SafeMath.sol";
-import "./zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
+import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../zeppelin-solidity/contracts/math/SafeMath.sol";
+import "../zeppelin-solidity/contracts/token/ERC20/SafeERC20.sol";
 
 contract SmartFundInterface {
   // the total number of shares in the fund
