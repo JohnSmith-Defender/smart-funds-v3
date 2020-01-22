@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 
 import "./SmartFund.sol";
 import "../interfaces/PermittedExchangesInterface.sol";
+import "../interfaces/PermittedPoolsInterface.sol";
 import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /*
@@ -12,10 +13,12 @@ contract SmartFundRegistry is Ownable {
 
   // The Smart Contract which stores the addresses of all the authorized Exchange Portals
   PermittedExchangesInterface public permittedExchanges;
+  // The Smart Contract which stores the addresses of all the authorized Pool Portals
+  PermittedPoolsInterface public permittedPools;
 
+  // Addresses of portals
   address public poolPortalAddress;
   address public exchangePortalAddress;
-  address public permittedExchangesAddress;
 
   // platForm fee is out of 10,000, e.g 2500 is 25%
   uint256 public platformFee;
@@ -31,18 +34,20 @@ contract SmartFundRegistry is Ownable {
   * @param _platformFee                  Initial platform fee
   * @param _exchangePortalAddress        Address of the initial ExchangePortal contract
   * @param _permittedExchangesAddress    Address of the permittedExchanges contract
-  * @param _poolPortalAddress            Address of PoolPortal contract
+  * @param _permittedPoolAddress         Address of the permittedPool contract
+  * @param _poolPortalAddress            Address of the initial PoolPortal contract
   */
   constructor(
     uint256 _platformFee,
     address _exchangePortalAddress,
     address _permittedExchangesAddress,
+    address _permittedPoolAddress,
     address _poolPortalAddress
   ) public {
     platformFee = _platformFee;
     exchangePortalAddress = _exchangePortalAddress;
-    permittedExchangesAddress = _permittedExchangesAddress;
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
+    permittedPools = PermittedPoolsInterface(_permittedPoolAddress);
     poolPortalAddress = _poolPortalAddress;
   }
 
@@ -66,7 +71,8 @@ contract SmartFundRegistry is Ownable {
       platformFee,
       this,
       exchangePortalAddress,
-      permittedExchangesAddress,
+      address(permittedExchanges),
+      address(permittedPools),
       poolPortalAddress
     );
 

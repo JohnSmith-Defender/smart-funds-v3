@@ -1,6 +1,7 @@
 pragma solidity ^0.4.24;
 
 import "../interfaces/SmartFundInterface.sol";
+import "../interfaces/PermittedPoolsInterface.sol";
 
 /*
   The SmartFund contract is what holds all the tokens and ether, and contains all the logic
@@ -30,6 +31,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
 
   // The Smart Contract which stores the addresses of all the authorized Exchange Portals
   PermittedExchangesInterface public permittedExchanges;
+
+  // The Smart Contract which stores the addresses of all the authorized Pools Portals
+  PermittedPoolsInterface public permittedPools;
 
   // For ERC20 compliance
   string public name;
@@ -115,6 +119,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _platformAddress              Address of platform to send fees to
   * @param _exchangePortalAddress        Address of initial exchange portal
   * @param _permittedExchangesAddress    Address of PermittedExchanges contract
+  * @param _permittedPoolsAddress        Address of PermittedPools contract
+  * @param _poolPortalAddress            Address of initial pool portal
   */
   constructor(
     address _owner,
@@ -124,7 +130,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     address _platformAddress,
     address _exchangePortalAddress,
     address _permittedExchangesAddress,
-    address _poolPortal
+    address _permittedPoolsAddress,
+    address _poolPortalAddress
   ) public {
     // never allow a 100% fee
     require(_successFee < TOTAL_PERCENTAGE);
@@ -150,7 +157,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     // Initial interfaces
     exchangePortal = ExchangePortalInterface(_exchangePortalAddress);
     permittedExchanges = PermittedExchangesInterface(_permittedExchangesAddress);
-    poolPortal = PoolPortalInterface(_poolPortal);
+    permittedPools = PermittedPoolsInterface(_permittedPoolsAddress);
+    poolPortal = PoolPortalInterface(_poolPortalAddress);
 
     emit SmartFundCreated(owner);
   }
@@ -642,6 +650,9 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   * @param _newPoolPortal   The address of the new pool portal to use
   */
   function setNewPoolPortal(address _newPoolPortal) public onlyOwner {
+    // Require that the new pool portal is permitted by permittedPools
+    require(permittedPools.permittedAddresses(_newPoolPortal));
+
     poolPortal = PoolPortalInterface(_newPoolPortal);
   }
 

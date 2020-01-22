@@ -1,5 +1,5 @@
 pragma solidity ^0.4.24;
 
-contract PermittedExchangesInterface {
+contract PermittedPoolsInterface {
   mapping (address => bool) public permittedAddresses;
 }
