@@ -252,7 +252,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
       returnAmount = bancorNetwork.convert.value(sourceAmount)(pathInERC20, sourceAmount, 1);
     }
     else {
-      _transferFromSenderAndApproveTo(ERC20(sourceToken), sourceAmount, paraswapSpender);
+      _transferFromSenderAndApproveTo(ERC20(sourceToken), sourceAmount, address(bancorNetwork));
       returnAmount = bancorNetwork.claimAndConvert(pathInERC20, sourceAmount, 1);
     }
  }
