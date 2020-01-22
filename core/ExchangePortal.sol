@@ -55,6 +55,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   * @param _paraswap        paraswap main address
   * @param _paraswapPrice   paraswap price feed address
   * @param _paraswapParams  helper contract for convert params from bytes32
+  * @param _bancorRegistryWrapper  address of Bancor Registry Wrapper
   * @param _BancorEtherToken address of Bancor ETH wrapper
   * @param _getBancorRatio address of GetRatioForBancorAssets
   */
@@ -62,7 +63,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     address _paraswap,
     address _paraswapPrice,
     address _paraswapParams,
-    address _bancorRegistry,
+    address _bancorRegistryWrapper,
     address _BancorEtherToken,
     address _getBancorRatio
     )
@@ -73,7 +74,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
     priceFeedInterface = IPriceFeed(_paraswapPrice);
     paraswapParams = IParaswapParams(_paraswapParams);
     paraswapSpender = paraswapInterface.getTokenTransferProxy();
-    bancorRegistry = IGetBancorAddressFromRegistry(_bancorRegistry);
+    bancorRegistry = IGetBancorAddressFromRegistry(_bancorRegistryWrapper);
     BancorEtherToken = _BancorEtherToken;
     getBancorRatio = IGetRatioForBancorAssets(_getBancorRatio);
   }
