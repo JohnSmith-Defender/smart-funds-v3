@@ -1,7 +1,7 @@
 pragma solidity ^0.4.24;
 
-import "./PermittedExchangesInterface.sol";
-import "./zeppelin-solidity/contracts/ownership/Ownable.sol";
+import "../interfaces/PermittedExchangesInterface.sol";
+import "../zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 /*
   The PermittedExchanges contract determines which addresses are permitted
