@@ -15,7 +15,7 @@ import "../bancor/interfaces/PathFinderInterface.sol";
 import "../bancor/interfaces/IGetRatioForBancorAssets.sol";
 
 
-import "../ExchangePortalInterface.sol";
+import "../interfaces/ExchangePortalInterface.sol";
 
 /*
 * The ExchangePortal contract is an implementation of ExchangePortalInterface that allows
