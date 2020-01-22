@@ -34,6 +34,22 @@ contract SmartFundInterface {
   )
     external;
 
+  function buyPool(
+    uint256 _amount,
+    uint _type,
+    ERC20 _poolToken,
+    bytes32[] _additionalArgs
+  )
+    external;
+
+  function sellPool(
+    uint256 _amount,
+    uint _type,
+    ERC20 _poolToken,
+    bytes32[] _additionalArgs
+  )
+    external;
+
   // calculates the number of shares a buyer will receive for depositing `amount` of ether
   function calculateDepositToShares(uint256 _amount) public view returns (uint256);
 }

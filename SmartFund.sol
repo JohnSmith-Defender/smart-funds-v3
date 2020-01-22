@@ -95,6 +95,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
   mapping (address => int256) public addressesNetDeposit;
 
   // Events
+  event BuyPool(address poolToken, uint256 amount);
+  event SellPool(address poolToken, uint256 amount);
   event Deposit(address indexed user, uint256 amount, uint256 sharesReceived, uint256 totalShares);
   event Withdraw(address indexed user, uint256 sharesRemoved, uint256 totalShares);
   event Trade(address src, uint256 srcAmount, address dest, uint256 destReceived);
@@ -315,12 +317,15 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
    bytes32[] _additionalArgs // Some addition data for another pools like Uniswap
   )
   external onlyOwner {
+
    if(_type == uint(PortalType.Bancor)){
     _buyBancorPool(_amount, _type, _poolToken, _additionalArgs);
    }else{
      // unknown portal type
      revert();
    }
+
+   emit BuyPool(_poolToken, _amount);
   }
 
 
@@ -390,6 +395,8 @@ contract SmartFund is SmartFundInterface, Ownable, ERC20 {
     (ERC20 bancorConnector, ERC20 ercConnector) = poolPortal.getBancorConnectorsByRelay(address(_poolToken));
     _addToken(address(bancorConnector));
     _addToken(address(ercConnector));
+
+    emit SellPool(_poolToken, _amount);
   }
 
   /**
