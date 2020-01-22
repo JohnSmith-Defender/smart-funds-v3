@@ -1,14 +1,14 @@
 // TODO write docs for methods
 pragma solidity ^0.4.24;
 
-import "./zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "./zeppelin-solidity/contracts/math/SafeMath.sol";
+import "../zeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "../zeppelin-solidity/contracts/math/SafeMath.sol";
 
-import "./bancor/interfaces/BancorConverterInterface.sol";
-import "./bancor/interfaces/IGetRatioForBancorAssets.sol";
-import "./bancor/interfaces/SmartTokenInterface.sol";
-import "./bancor/interfaces/IGetBancorAddressFromRegistry.sol";
-import "./bancor/interfaces/IBancorFormula.sol";
+import "../bancor/interfaces/BancorConverterInterface.sol";
+import "../bancor/interfaces/IGetRatioForBancorAssets.sol";
+import "../bancor/interfaces/SmartTokenInterface.sol";
+import "../bancor/interfaces/IGetBancorAddressFromRegistry.sol";
+import "../bancor/interfaces/IBancorFormula.sol";
 
 
 contract PoolPortal {
