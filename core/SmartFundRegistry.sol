@@ -107,6 +107,18 @@ contract SmartFundRegistry is Ownable {
   }
 
   /**
+  * @dev Sets a new default Portal Portal address
+  *
+  * @param _poolPortalAddress    Address of the new pool portal to be set
+  */
+  function setPoolPortalAddress (address _poolPortalAddress) external onlyOwner {
+    // Require that the new pool portal is permitted by permittedPools
+    require(permittedPools.permittedAddresses(_poolPortalAddress));
+
+    poolPortalAddress = _poolPortalAddress;
+  }
+
+  /**
   * @dev Sets maximum success fee for all newly created SmartFunds
   *
   * @param _maximumSuccessFee    New maximum success fee
@@ -140,15 +152,6 @@ contract SmartFundRegistry is Ownable {
   */
   function withdrawEther() external onlyOwner {
     owner.transfer(address(this).balance);
-  }
-
-  /**
-  * @dev Sets a new default Portal Portal address
-  *
-  * @param _poolPortalAddress    Address of the new pool portal to be set
-  */
-  function setNewPoolPortalAddress (address _poolPortalAddress) external onlyOwner {
-     poolPortalAddress = _poolPortalAddress;
   }
 
   // Fallback payable function in order to receive ether when fund manager withdraws their cut
