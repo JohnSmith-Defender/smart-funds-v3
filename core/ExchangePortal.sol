@@ -299,7 +299,7 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
          address from = ERC20(_from) == ETH_TOKEN_ADDRESS ? BancorEtherToken : from;
          address to = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : to;
          // get Bancor rate
-         value = getBancorRatio.getRatio(from, _to, _amount);
+         value = getBancorRatio.getRatio(from, to, _amount);
        }
      }else{
        value = 0;
