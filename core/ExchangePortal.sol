@@ -289,26 +289,47 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   */
   function getValue(address _from, address _to, uint256 _amount) public view returns (uint256 value) {
      if(_amount > 0){
-       // Check call Paraswap
-       (bool success) = address(priceFeedInterface).call(
-       abi.encodeWithSelector(priceFeedInterface.getBestPriceSimple.selector, _from, _to, _amount));
-
-       // if Paraswap can get rate for this assets, use Paraswap
-       if(success){
-         value = priceFeedInterface.getBestPriceSimple(_from, _to, _amount);
-       }
-       // if Paraswap can't, use Bancor
-       else{
-         // Change ETH to Bancor ETH wrapper
-         address from = ERC20(_from) == ETH_TOKEN_ADDRESS ? BancorEtherToken : from;
-         address to = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : to;
-         // get Bancor rate
-         value = getBancorRatio.getRatio(from, to, _amount);
+       uint256 result = getValueViaParaswap(_from, _to, _amount);
+       // If Paraswap return 0, check from Bancor network for ensure
+       if(result > 0){
+         value = result;
+       }else{
+         value = getValueViaBancor(_from, _to, _amount);
        }
      }else{
        value = 0;
      }
      return value;
+  }
+
+
+  function getValueViaParaswap(
+    address _from,
+    address _to,
+    uint256 _amount
+  ) public view returns (uint256 value) {
+    // Check call Paraswap (Because Paraswap can return error for some assets)
+    (bool success) = address(priceFeedInterface).call(
+    abi.encodeWithSelector(priceFeedInterface.getBestPriceSimple.selector, _from, _to, _amount));
+
+    // if Paraswap can get rate for this assets, use Paraswap
+    if(success){
+      value = priceFeedInterface.getBestPriceSimple(_from, _to, _amount);
+    }else{
+      value = 0;
+    }
+  }
+
+  function getValueViaBancor(
+    address _from,
+    address _to,
+    uint256 _amount
+  ) public view returns (uint256 value){
+    // Change ETH to Bancor ETH wrapper
+    address fromAddress = ERC20(_from) == ETH_TOKEN_ADDRESS ? BancorEtherToken : _from;
+    address toAddress = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : _to;
+    // get Bancor rate
+    value = getBancorRatio.getRatio(fromAddress, toAddress, _amount);
   }
 
   /**

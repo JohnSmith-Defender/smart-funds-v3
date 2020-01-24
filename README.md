@@ -16,11 +16,11 @@ Paraswap Params
 GetBancorAddressFromRegistry (Wrapper)
 0x178c68aefdcae5c9818e43addf6a2b66df534ed5
 
-GetRatioForBancorAssets
-0x3079a42efbd0027318baa0dd81d002c0929b502c
-
 Bancor ETH Wrapper
 0xc0829421C1d260BD3cB3E0F06cfE2D52db2cE315
+
+GetRatioForBancorAssets
+0x3079a42efbd0027318baa0dd81d002c0929b502c
 
 
 
@@ -31,7 +31,7 @@ PermittedPools
 0x8c7ab65e2f82ce8c43831e909a24216656498fb4
 
 ExchangePortal (NEW)
-0x7a25cc823182ec6c670e7518aa275f52bbd7ae75
+0x69dab7803eb222e1a0bee42fbf87906d7623b695
 
 ExchangePortal (OLD NOT WORKED)
 0x3a4ee3589b57bf9372ca60031e8a4a89a8b2b670
