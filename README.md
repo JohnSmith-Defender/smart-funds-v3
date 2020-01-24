@@ -2,15 +2,14 @@
 
 ```
 Description: Added pools support
-
-Paraswap Params
-0x0595aaa68ad0fbeacdeeaa7b7d78f22717ade957
+ParaswapAugustus
+0xF92C1ad75005E6436B4EE84e88cB23Ed8A290988
 
 ParaswapPrice
 0xC6A3eC2E62A932B94Bac51B6B9511A4cB623e2E5
 
-ParaswapAugustus
-0xF92C1ad75005E6436B4EE84e88cB23Ed8A290988
+Paraswap Params
+0x0595aaa68ad0fbeacdeeaa7b7d78f22717ade957
 
 
 
@@ -20,6 +19,9 @@ GetBancorAddressFromRegistry (Wrapper)
 GetRatioForBancorAssets
 0x3079a42efbd0027318baa0dd81d002c0929b502c
 
+Bancor ETH Wrapper
+0xc0829421C1d260BD3cB3E0F06cfE2D52db2cE315
+
 
 
 PoolPortal
@@ -28,7 +30,10 @@ PoolPortal
 PermittedPools
 0x8c7ab65e2f82ce8c43831e909a24216656498fb4
 
-ExchangePortal
+ExchangePortal (NEW)
+0x7a25cc823182ec6c670e7518aa275f52bbd7ae75
+
+ExchangePortal (OLD NOT WORKED)
 0x3a4ee3589b57bf9372ca60031e8a4a89a8b2b670
 
 PermittedExchanges

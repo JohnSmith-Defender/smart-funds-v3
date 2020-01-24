@@ -285,16 +285,20 @@ contract ExchangePortal is ExchangePortalInterface, Ownable {
   * @param _to        Address of token we're getting the value in
   * @param _amount    The amount of _from
   *
-  * @return best price from paraswap
+  * @return best price from Paraswap (or Bancor)
   */
   function getValue(address _from, address _to, uint256 _amount) public view returns (uint256 value) {
      if(_amount > 0){
-       uint256 paraswapResult = priceFeedInterface.getBestPriceSimple(_from, _to, _amount);
-       // Paraswap not support some Bancor assets, so we need check Bancor directly for ensure
-       // if Paraswap return 0
-       if(paraswapResult > 0){
-         value = paraswapResult;
-       }else{
+       // Check call Paraswap
+       (bool success) = address(priceFeedInterface).call(
+       abi.encodeWithSelector(priceFeedInterface.getBestPriceSimple.selector, _from, _to, _amount));
+
+       // if Paraswap can get rate for this assets, use Paraswap
+       if(success){
+         value = priceFeedInterface.getBestPriceSimple(_from, _to, _amount);
+       }
+       // if Paraswap can't, use Bancor
+       else{
          // Change ETH to Bancor ETH wrapper
          address from = ERC20(_from) == ETH_TOKEN_ADDRESS ? BancorEtherToken : from;
          address to = ERC20(_to) == ETH_TOKEN_ADDRESS ? BancorEtherToken : to;
