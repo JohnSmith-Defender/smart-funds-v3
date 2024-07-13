@@ -11,7 +11,7 @@ ParaswapPrice
 Paraswap Params
 0x0595aaa68ad0fbeacdeeaa7b7d78f22717ade957
 
-
+      
 
 GetBancorAddressFromRegistry (Wrapper)
 0x178c68aefdcae5c9818e43addf6a2b66df534ed5
